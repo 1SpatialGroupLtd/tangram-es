@@ -897,16 +897,6 @@ public class MapController implements Renderer {
     }
 
     /**
-     * Set the http error listener
-     * @param listener The {@Link HttpErrorListener} to set
-     */
-    @Keep
-    public void setHttpErrorListener(final HttpErrorListener listener) {
-        httpErrorListener = listener;
-    }
-
-
-    /**
      * Set a listener for label pick events
      * @param listener The {@link LabelPickListener} to call
      */
