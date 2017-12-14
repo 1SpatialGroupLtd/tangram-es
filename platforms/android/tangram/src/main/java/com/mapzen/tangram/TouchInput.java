@@ -57,6 +57,21 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     }
 
     /**
+     * @description A generic touch responder for emitting the base touch inputs
+     */
+    public interface TouchResponder {
+
+        /**
+         * The Base touch up event
+         * @param x The x screen coordinate of the tapped point
+         * @param y The y screen coordinate of the tapped point
+         * @return True if the event is consumed, false if the event should continue to propagate
+         */
+        boolean onTouchUp(float x, float y);
+
+    }
+
+    /**
      * Interface for responding to a tap gesture
      */
     public interface TapResponder {
@@ -184,6 +199,7 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     private RotateGestureDetector rotateGestureDetector;
     private ShoveGestureDetector shoveGestureDetector;
 
+    private TouchResponder touchResponder;
     private TapResponder tapResponder;
     private DoubleTapResponder doubleTapResponder;
     private LongPressResponder longPressResponder;
@@ -215,6 +231,14 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
         for (Gestures g : Gestures.values()) {
             allowedSimultaneousGestures.put(g, EnumSet.allOf(Gestures.class));
         }
+    }
+
+    /**
+     * Set a {@link TouchResponder}
+     * @param responder The responder object, or null to leave these gesture events unchanged
+     */
+    public void setTouchResponder(TouchResponder responder) {
+        this.touchResponder = responder;
     }
 
     /**
@@ -330,6 +354,7 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
+        genericTouchDetctor(event);
         panTapGestureDetector.onTouchEvent(event);
         scaleGestureDetector.onTouchEvent(event);
         shoveGestureDetector.onTouchEvent(event);
@@ -520,5 +545,19 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     @Override
     public void onShoveEnd(ShoveGestureDetector detector) {
         setGestureDetected(Gestures.SHOVE, false);
+    }
+
+    /**
+     * @description Forwards on generic touch events to relevant handlers
+     * @param event The Motion event
+     */
+    private void genericTouchDetctor(MotionEvent event) {
+        if (touchResponder == null) {
+            return;
+        }
+
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            touchResponder.onTouchUp(event.getX(), event.getY());
+        }
     }
 }

@@ -690,6 +690,20 @@ public class MapController implements Renderer {
     }
 
     /**
+     * Set a responder for generic touch gestures
+     * @param responder TouchResponder to call
+     */
+    @Keep
+    public void setTouchResponder(final TouchInput.TouchResponder responder) {
+        touchInput.setTouchResponder(new TouchInput.TouchResponder() {
+            @Override
+            public boolean onTouchUp(float x, float y) {
+                return responder != null && responder.onTouchUp(x, y);
+            }
+        });
+    }
+
+    /**
      * Set a responder for tap gestures
      * @param responder TapResponder to call
      */
