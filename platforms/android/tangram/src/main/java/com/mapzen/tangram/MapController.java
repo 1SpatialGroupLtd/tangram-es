@@ -154,6 +154,25 @@ public class MapController implements Renderer {
     }
 
     /**
+     * Interface allowing http errors from the default {@Link HttpHandler} to be listened to
+     */
+    @Keep
+    public interface HttpErrorListener {
+        /**
+         * When a request has failed - possibly due to being offline
+         * @param errorMessage The reported error
+         */
+        void onHttpFailure(String errorMessage);
+
+        /**
+         * When a request has errored at the http or server level
+         * @param errorStatus The http error status code
+         * @param errorMessage The error message string
+         */
+        void onHttpError(int errorStatus, String errorMessage);
+    }
+
+    /**
      * Callback for {@link #captureFrame(FrameCaptureCallback, boolean) }
      */
     public interface FrameCaptureCallback {
@@ -296,6 +315,15 @@ public class MapController implements Renderer {
      */
     public int loadSceneFileAsync(String path) {
         return loadSceneFileAsync(path, null);
+    }
+
+    /**
+     * Set the http error listener
+     * @param listener The {@Link HttpErrorListener} to set
+     */
+    @Keep
+    public void setHttpErrorListener(final HttpErrorListener listener) {
+        httpErrorListener = listener;
     }
 
     /**
@@ -1242,6 +1270,7 @@ public class MapController implements Renderer {
     private FontFileParser fontFileParser;
     private DisplayMetrics displayMetrics = new DisplayMetrics();
     private HttpHandler httpHandler;
+    private HttpErrorListener httpErrorListener;
     private FeaturePickListener featurePickListener;
     private SceneLoadListener sceneLoadListener;
     private LabelPickListener labelPickListener;
@@ -1332,16 +1361,27 @@ public class MapController implements Renderer {
         Callback callback = new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                nativeOnUrlComplete(mapPointer, requestHandle, null, e.getMessage());
+                String errorMessage = e.getMessage();
+                if (!call.isCanceled() && httpErrorListener != null) {
+                    httpErrorListener.onHttpFailure(errorMessage);
+                }
+                nativeOnUrlComplete(mapPointer, requestHandle, null, errorMessage);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
                 if (!response.isSuccessful()) {
-                    nativeOnUrlComplete(mapPointer, requestHandle, null, response.message());
-                    throw new IOException("Unexpected response code: " + response + " for URL: " + url);
+                    String errorMessage = response.message();
+                    nativeOnUrlComplete(mapPointer, requestHandle, null, errorMessage);
+                    if (httpErrorListener != null) {
+                        httpErrorListener.onHttpError(response.code(), errorMessage);
+                        return;
+                    } else {
+                        throw new IOException("Unexpected response code: " + response + " for URL: " + url);
+                    }
                 }
+
                 byte[] bytes = response.body().bytes();
                 nativeOnUrlComplete(mapPointer, requestHandle, bytes, null);
             }
