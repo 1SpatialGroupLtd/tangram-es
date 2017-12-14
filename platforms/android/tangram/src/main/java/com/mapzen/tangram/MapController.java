@@ -154,6 +154,31 @@ public class MapController implements Renderer {
     }
 
     /**
+     * Interface for listening to request start and request cancel information.
+     * Returning false to either event indicates that the event will be handled externally and
+     * stops the default {@Link HttpHandler} from being invoked.
+     * Calls back to {@Link requestComplete} with the received data or error message
+     */
+    @Keep
+    public interface HttpRequestInterceptor {
+        /**
+         * Called on request start, returns true if request will be handled by interceptor
+         * @param url The url to get
+         * @param requestHandle The internal request handle - used for cancel or passing on complete
+         * @return True if the request will be handled by the interceptor, else false
+         */
+        boolean onRequestStart(String url, long requestHandle);
+
+        /**
+         * Called when a request should be cancelled, returns true if the request has been
+         * cancelled at the interceptor leve
+         * @param requestHandle The request handle identifying the request
+         * @return True if the request has been cancelled by the interceptor, else false
+         */
+        boolean onRequestCancelled(long requestHandle);
+    }
+
+    /**
      * Callback for {@link #captureFrame(FrameCaptureCallback, boolean) }
      */
     public interface FrameCaptureCallback {
@@ -863,6 +888,25 @@ public class MapController implements Renderer {
     }
 
     /**
+     * Set the request interceptor
+     * @param interceptor The {@Link HttpRequestInterceptor} to set
+     */
+    @Keep
+    public void setHttpRequestInterceptor(HttpRequestInterceptor interceptor) {
+        httpRequestInterceptor = interceptor;
+    }
+
+    /**
+     * Set the http error listener
+     * @param listener The {@Link HttpErrorListener} to set
+     */
+    @Keep
+    public void setHttpErrorListener(final HttpErrorListener listener) {
+        httpErrorListener = listener;
+    }
+
+
+    /**
      * Set a listener for label pick events
      * @param listener The {@link LabelPickListener} to call
      */
@@ -1242,6 +1286,7 @@ public class MapController implements Renderer {
     private FontFileParser fontFileParser;
     private DisplayMetrics displayMetrics = new DisplayMetrics();
     private HttpHandler httpHandler;
+    private HttpRequestInterceptor httpRequestInterceptor;
     private FeaturePickListener featurePickListener;
     private SceneLoadListener sceneLoadListener;
     private LabelPickListener labelPickListener;
@@ -1320,12 +1365,23 @@ public class MapController implements Renderer {
         if (httpHandler == null) {
             return;
         }
+        if (httpRequestInterceptor != null &&
+                httpRequestInterceptor.onRequestCancelled(requestHandle)) {
+            // Cancel has been handled in the interceptor - stop propagation
+            return;
+        }
         httpHandler.onCancel(requestHandle);
     }
 
     @Keep
     void startUrlRequest(final String url, final long requestHandle) {
         if (httpHandler == null) {
+            return;
+        }
+
+        if (httpRequestInterceptor != null &&
+                httpRequestInterceptor.onRequestStart(url, requestHandle)) {
+            // Request will be handled by interceptor
             return;
         }
 
@@ -1348,6 +1404,18 @@ public class MapController implements Renderer {
         };
 
         httpHandler.onRequest(url, callback, requestHandle);
+    }
+
+    /**
+     * The request complete callback invoked externally to pass completed request data into the
+     * c++ level
+     * @param requestHandle The request handle for referencing the request internally
+     * @param data The raw byte data (if error this will be null)
+     * @param errorMessage The request error message (if any)
+     */
+    @Keep
+    public void requestComplete(long requestHandle, byte[] data, String errorMessage) {
+        nativeOnUrlComplete(mapPointer, requestHandle, data, errorMessage);
     }
 
     // Called from JNI on worker or render-thread.
