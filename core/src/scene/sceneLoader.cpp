@@ -505,6 +505,8 @@ void SceneLoader::loadTexture(const std::pair<Node, Node>& _node, SceneTextures&
                 atlas->addSpriteNode(spriteName, pos, size);
             }
         }
+
+        atlas->updateSpriteNodes({texture->width(), texture->height()});
         texture->setSpriteAtlas(std::move(atlas));
     }
 
