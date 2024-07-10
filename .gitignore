@@ -6,6 +6,7 @@
 ipch/
 build/
 out/
+windows-build-winui/
 
 CMakeSettings.json
 *.suo
