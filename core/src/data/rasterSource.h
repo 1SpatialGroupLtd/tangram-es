@@ -55,6 +55,10 @@ public:
 
     void generateGeometry(bool _generateGeometry) override;
 
+    void clearCache() {
+        m_textures->clear();
+    }
+
 };
 
 }

@@ -963,6 +963,76 @@ void toggleDebugFlag(DebugFlags _flag) {
     // }
 }
 
+bool Map::getTileSourceVisibility(const std::string& sourceName) {
+    for (auto &it : impl->scene->tileSources()) {
+        if (it->name() == sourceName) {
+            return it->isVisible();
+        }
+    }
+
+    return false;
+}
+
+bool Map::setTileSourceVisibility(const std::string& sourceName, bool isVisible) {
+    for(auto& it : impl->scene->tileSources()) {
+        TileSource *source = it.get();
+
+        if (source->name() == sourceName) {
+            if(source->isVisible() == isVisible)
+                return false;
+
+            // clear the cache before we show the layer
+            if(isVisible && !source->isVisible())
+                this->impl->scene->tileManager()->clearTileSet(it->id(), true);
+
+            source->setVisible(isVisible);
+            impl->platform.requestRender();
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string Map::getTileSourceUrl(const std::string &sourceName) {
+    for (const auto &it: impl->scene->tileSources()) {
+        if (it->name() != sourceName) continue;
+        if (!it->getSources()->next) return {};
+        auto source = it->getSources()->next.get();
+
+        if (auto networkDataSource = dynamic_cast<NetworkDataSource *>(source)) {
+            return networkDataSource->getUrlTemplate();
+        }
+    }
+
+    return {};
+}
+
+bool Map::setTileSourceUrl(const std::string& sourceName, const std::string& url) {
+    for (const auto& it : impl->scene->tileSources()) {
+
+        if (it->name() != sourceName) continue;
+
+        if(!it->getSources()->next) return false;;
+
+        auto source = it->getSources()->next.get();
+
+        if(auto networkDataSource = dynamic_cast<NetworkDataSource *>(source)) {
+            networkDataSource->setUrlTemplate(url);
+            this->impl->scene->tileManager()->clearTileSet(it->id(), true);
+            this->getPlatform().requestRender();
+            return true;
+        }
+
+        return false;
+    }
+
+    return false;
+}
+
+void Map::clearTileCache(int32_t sourceId)
+{
+    this->impl->scene->tileManager()->clearTileCache(sourceId);
+}
 
 void Map::setLayer(const std::string& name, const std::string& yaml){
     if(name.empty() || yaml.empty())
@@ -981,4 +1051,8 @@ void Map::setLayer(const std::string& name, const std::string& yaml){
 
 bool Map::layerExists(const std::string& name) const {
     return impl->scene->layerExists(name);
+}
+
+float Map::pixelsPerMeter() const {
+    return impl->view.pixelsPerMeter();
 }

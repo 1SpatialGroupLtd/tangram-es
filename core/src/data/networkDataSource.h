@@ -29,6 +29,10 @@ public:
 
     static std::string buildUrlForTile(const TileID& tile, const std::string& urlTemplate, const UrlOptions& options, int subdomainIndex);
 
+    void setUrlTemplate(const std::string& url) { m_urlTemplate = url; }
+
+    const std::string& getUrlTemplate() const { return m_urlTemplate;}
+
 private:
 
     Platform& m_platform;

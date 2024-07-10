@@ -148,6 +148,8 @@ public:
 
     void setFormat(Format format) { m_format = format; }
 
+    DataSource* getSources() const { return m_sources.get(); }
+
 protected:
 
     void addRasterTasks(TileTask& _task);
