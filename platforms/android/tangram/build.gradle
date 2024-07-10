@@ -76,8 +76,6 @@ android {
       }
     }
   }
-
-  namespace 'com.mapzen.tangram'
 }
 
 dependencies {
