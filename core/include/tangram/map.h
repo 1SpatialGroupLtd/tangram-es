@@ -23,10 +23,10 @@ enum LabelType {
 };
 
 struct FeaturePickResult {
-    FeaturePickResult(std::shared_ptr<Properties> _properties,
+    FeaturePickResult(int _identifier, std::shared_ptr<Properties> _properties,
                       std::array<float, 2> _position)
-        : properties(_properties), position(_position) {}
-
+        : identifier(_identifier), properties(_properties), position(_position) {}
+    int identifier;
     std::shared_ptr<Properties> properties;
     std::array<float, 2> position;
 };
@@ -35,11 +35,13 @@ struct FeaturePickResult {
 using FeaturePickCallback = std::function<void(const FeaturePickResult*)>;
 
 struct LabelPickResult {
-    LabelPickResult(LabelType _type, LngLat _coordinates, FeaturePickResult _touchItem)
-        : type(_type),
-          coordinates(_coordinates),
-          touchItem(_touchItem) {}
+    LabelPickResult(int _identifier,LabelType _type, LngLat _coordinates, FeaturePickResult _touchItem)
+    : identifier(_identifier),
+      type(_type),
+      coordinates(_coordinates),
+      touchItem(_touchItem) {}
 
+    int identifier;
     LabelType type;
     LngLat coordinates;
     FeaturePickResult touchItem;
@@ -49,10 +51,11 @@ struct LabelPickResult {
 using LabelPickCallback = std::function<void(const LabelPickResult*)>;
 
 struct MarkerPickResult {
-    MarkerPickResult(MarkerID _id, LngLat _coordinates, std::array<float, 2> _position)
-        : id(_id), coordinates(_coordinates), position(_position) {}
+    MarkerPickResult(MarkerID _id, int _identifier, LngLat _coordinates, std::array<float, 2> _position)
+        : id(_id), identifier(_identifier), coordinates(_coordinates), position(_position) {}
 
     MarkerID id;
+    int identifier;
     LngLat coordinates;
     std::array<float, 2> position;
 };
@@ -443,18 +446,18 @@ public:
     // Create a query to select a feature marked as 'interactive'. The query runs on the next frame.
     // Calls _onFeaturePickCallback once the query has completed, and returns the FeaturePickResult
     // with its associated properties or null if no feature was found.
-    void pickFeatureAt(float _x, float _y, FeaturePickCallback _onFeaturePickCallback);
+    void pickFeatureAt(float _x, float _y, int _identifier, FeaturePickCallback _onFeaturePickCallback);
 
     // Create a query to select a label created for a feature marked as 'interactive'. The query runs
     // on the next frame.
     // Calls _onLabelPickCallback once the query has completed, and returns the LabelPickResult
     // with its associated properties or null if no label was found.
-    void pickLabelAt(float _x, float _y, LabelPickCallback _onLabelPickCallback);
+    void pickLabelAt(float _x, float _y, int _identifier, LabelPickCallback _onLabelPickCallback);
 
     // Create a query to select a marker that is 'interactive'. The query runs on the next frame.
     // Calls _onLMarkerPickCallback once the query has completed, and returns the MarkerPickResult
     // with its associated properties or null if no marker was found.
-    void pickMarkerAt(float _x, float _y, MarkerPickCallback _onMarkerPickCallback);
+    void pickMarkerAt(float _x, float _y, int _identifier, MarkerPickCallback _onMarkerPickCallback);
 
     // Run this task asynchronously to Tangram's main update loop.
     void runAsyncTask(std::function<void()> _task);

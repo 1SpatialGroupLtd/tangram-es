@@ -29,7 +29,7 @@ struct SelectionColorRead {
 class SelectionQuery {
 
 public:
-    SelectionQuery(glm::vec2 _position, float _radius, QueryCallback _queryCallback);
+    SelectionQuery(glm::vec2 _position, float _radius, int _identifier, QueryCallback _queryCallback);
 
     void process(const View& _view, const FrameBuffer& _framebuffer, const MarkerManager& _markerManager,
                  const TileManager& _tileManager, const LabelManager& _labelManager,
@@ -40,6 +40,7 @@ public:
 private:
     glm::vec2 m_position;
     float m_radius;
+    int m_identifier;
     QueryCallback m_queryCallback;
 
 };

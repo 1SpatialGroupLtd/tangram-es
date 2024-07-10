@@ -857,18 +857,18 @@ void Map::setPickRadius(float _radius) {
     impl->pickRadius = _radius;
 }
 
-void Map::pickFeatureAt(float _x, float _y, FeaturePickCallback _onFeaturePickCallback) {
-    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _onFeaturePickCallback});
+void Map::pickFeatureAt(float _x, float _y, int _identifier, FeaturePickCallback _onFeaturePickCallback) {
+    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _identifier, _onFeaturePickCallback});
     platform->requestRender();
 }
 
-void Map::pickLabelAt(float _x, float _y, LabelPickCallback _onLabelPickCallback) {
-    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _onLabelPickCallback});
+void Map::pickLabelAt(float _x, float _y, int _identifier, LabelPickCallback _onLabelPickCallback) {
+    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _identifier, _onLabelPickCallback});
     platform->requestRender();
 }
 
-void Map::pickMarkerAt(float _x, float _y, MarkerPickCallback _onMarkerPickCallback) {
-    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _onMarkerPickCallback});
+void Map::pickMarkerAt(float _x, float _y, int _identifier, MarkerPickCallback _onMarkerPickCallback) {
+    impl->selectionQueries.push_back({{_x, _y}, impl->pickRadius, _identifier, _onMarkerPickCallback});
     platform->requestRender();
 }
 

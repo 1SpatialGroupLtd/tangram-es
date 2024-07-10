@@ -12,8 +12,8 @@
 
 namespace Tangram {
 
-SelectionQuery::SelectionQuery(glm::vec2 _position, float _radius, QueryCallback _queryCallback)
-    : m_position(_position), m_radius(_radius), m_queryCallback(_queryCallback) {}
+SelectionQuery::SelectionQuery(glm::vec2 _position, float _radius, int _identifier, QueryCallback _queryCallback)
+    : m_position(_position), m_radius(_radius), m_identifier(_identifier), m_queryCallback(_queryCallback) {}
 
 QueryType SelectionQuery::type() const {
     return m_queryCallback.is<FeaturePickCallback>() ? QueryType::feature :
@@ -65,7 +65,7 @@ void SelectionQuery::process(const View& _view, const FrameBuffer& _framebuffer,
 
         for (const auto& tile : _tileManager.getVisibleTiles()) {
             if (auto props = tile->getSelectionFeature(color)) {
-                FeaturePickResult queryResult(props, {{m_position.x, m_position.y}});
+                FeaturePickResult queryResult(m_identifier, props, {{m_position.x, m_position.y}});
                 cb(&queryResult);
                 return;
             }
@@ -90,7 +90,7 @@ void SelectionQuery::process(const View& _view, const FrameBuffer& _framebuffer,
 
         glm::dvec2 bbCenter = marker->bounds().center();
         LngLat lngLat = MapProjection::projectedMetersToLngLat(bbCenter).wrapped();
-        MarkerPickResult markerResult(marker->id(), lngLat, {{m_position.x, m_position.y}});
+        MarkerPickResult markerResult(marker->id(), m_identifier, lngLat, {{m_position.x, m_position.y}});
 
         cb(&markerResult);
     } break;
@@ -118,8 +118,8 @@ void SelectionQuery::process(const View& _view, const FrameBuffer& _framebuffer,
 
         auto coordinate = label.second->coordToLngLat(label.first->modelCenter());
 
-        LabelPickResult queryResult(label.first->renderType(), coordinate.wrapped(),
-                                    FeaturePickResult(props, {{m_position.x, m_position.y}}));
+        LabelPickResult queryResult(m_identifier, label.first->renderType(), coordinate.wrapped(),
+                                    FeaturePickResult(m_identifier, props, {{m_position.x, m_position.y}}));
 
         cb(&queryResult);
     } break;
