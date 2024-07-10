@@ -45,14 +45,25 @@ extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;
 #include <GLFW/glfw3.h>
 #endif // TANGRAM_LINUX
 
-#ifdef TANGRAM_WINDOWS
-#define GL_GLEXT_PROTOTYPES
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-// Resolve aliased names on Windows
-#define glClearDepthf glClearDepth
-#define glDepthRangef glDepthRange
-#endif // TANGRAM_WINDOWS
+#if defined(TANGRAM_WINRT) || defined(TANGRAM_WINDOWS)
+	#define GL_GLEXT_PROTOTYPES
+#ifdef TANGRAM_WINRT
+	// OpenGL ES includes
+	#include <GLES2/gl2.h>
+	#include <GLES2/gl2ext.h>
+
+	#include <EGL/egl.h>
+	#include <EGL/eglext.h>
+#elif TANGRAM_WINDOWS
+	#include <GLFW/glfw3.h>
+	#include <glad/glad.h>
+
+	// Resolve aliased names on Windows
+	#define glClearDepthf glClearDepth
+	#define glDepthRangef glDepthRange
+#endif
+
+#endif // TANGRAM_WIN*
 
 #ifdef TANGRAM_RPI
 // Broadcom library for direct GPU access

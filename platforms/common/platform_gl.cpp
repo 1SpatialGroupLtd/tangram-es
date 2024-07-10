@@ -260,14 +260,24 @@ void GL::uniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, co
     GL_CHECK(glUniformMatrix4fv(location, count, transpose, value));
 }
 
-// mapbuffer
-void* GL::mapBuffer(GLenum target, GLenum access) {
-    auto result =  glMapBuffer(target, access);
+void *GL::mapBuffer(GLenum target, GLenum access) {
+    auto result =
+#ifdef TANGRAM_WINRT
+            glMapBufferOES(target, access);
+#else
+            glMapBuffer(target, access);
+#endif
     GL_CHECK({});
     return result;
 }
+
 GLboolean GL::unmapBuffer(GLenum target) {
-    auto result = glUnmapBuffer(target);
+    auto result =
+#ifdef TANGRAM_WINRT
+        glUnmapBufferOES(target);
+#else
+            glUnmapBuffer(target);
+#endif
     GL_CHECK({});
     return result;
 }
@@ -278,21 +288,33 @@ void GL::finish(void) {
 
 // VAO
 void GL::bindVertexArray(GLuint array) {
+#ifdef TANGRAM_WINRT
+    GL_CHECK(glBindVertexArrayOES(array));
+#else
     GL_CHECK(glBindVertexArray(array));
-}
-void GL::deleteVertexArrays(GLsizei n, const GLuint *arrays) {
-    GL_CHECK(glDeleteVertexArrays(n, arrays));
-}
-void GL::genVertexArrays(GLsizei n, GLuint *arrays) {
-    GL_CHECK(glGenVertexArrays(n, arrays));
+#endif
 }
 
-// Framebuffer
-void GL::bindFramebuffer(GLenum target, GLuint framebuffer) {
+void GL::deleteVertexArrays(GLsizei n, const GLuint *arrays) {
+#ifdef TANGRAM_WINRT
+    GL_CHECK(glDeleteVertexArraysOES(n, arrays));
+#else
+    GL_CHECK(glDeleteVertexArrays(n, arrays));
+#endif
+}
+
+void GL::genVertexArrays(GLsizei n, GLuint *arrays) {
+#ifdef TANGRAM_WINRT
+    GL_CHECK(glGenVertexArraysOES(n, arrays));
+#else
+    GL_CHECK(glGenVertexArrays(n, arrays));
+#endif
+}
+
+ void GL::bindFramebuffer(GLenum target, GLuint framebuffer) {
     GL_CHECK(glBindFramebuffer(target, framebuffer));
 }
-
-void GL::genFramebuffers(GLsizei n, GLuint *framebuffers) {
+void GL::genFramebuffers(GLsizei n, GLuint* framebuffers) {
     GL_CHECK(glGenFramebuffers(n, framebuffers));
 }
 
