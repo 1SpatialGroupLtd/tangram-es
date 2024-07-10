@@ -1085,3 +1085,9 @@ bool Map::layerExists(const std::string& name) const {
 float Map::pixelsPerMeter() const {
     return impl->view.pixelsPerMeter();
 }
+
+void Map::imitateMove() {
+    handlePanGesture(0,0,0,0);
+    this->getPlatform().requestRender();
+}
+}
