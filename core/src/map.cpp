@@ -424,13 +424,23 @@ void Map::setCameraPositionEased(const CameraPosition& _camera, float _duration,
 
     impl->ease = std::make_unique<Ease>(_duration,
         [=](float t) {
-            impl->view.setPosition(ease(e.start.pos.x, e.end.pos.x, t, _e),
-                                   ease(e.start.pos.y, e.end.pos.y, t, _e));
-            impl->view.setZoom(ease(e.start.zoom, e.end.zoom, t, _e));
+            if(t >= 1.0f)
+            {
+                // apply final state
+                impl->view.setPosition(e.end.pos.x, e.end.pos.y);
+                impl->view.setZoom(e.end.zoom);
+                impl->view.setRoll(_camera.rotation);
+                impl->view.setPitch(_camera.tilt);
+            }
+            else {
+                impl->view.setPosition(ease(e.start.pos.x, e.end.pos.x, t, _e),
+                                       ease(e.start.pos.y, e.end.pos.y, t, _e));
+                impl->view.setZoom(ease(e.start.zoom, e.end.zoom, t, _e));
 
-            impl->view.setRoll(ease(e.start.rotation, e.end.rotation, t, _e));
+                impl->view.setRoll(ease(e.start.rotation, e.end.rotation, t, _e));
 
-            impl->view.setPitch(ease(e.start.tilt, e.end.tilt, t, _e));
+                impl->view.setPitch(ease(e.start.tilt, e.end.tilt, t, _e));
+            }
         });
 
     platform->requestRender();
@@ -639,11 +649,19 @@ void Map::flyTo(const CameraPosition& _camera, float _duration, float _speed) {
     EaseType e = EaseType::cubic;
     auto cb =
         [=](float t) {
-            glm::dvec3 pos = fn(t);
-            impl->view.setPosition(pos.x, pos.y);
-            impl->view.setZoom(pos.z);
-            impl->view.setRoll(ease(rStart, rEnd, t, e));
-            impl->view.setPitch(ease(tStart, _camera.tilt, t, e));
+            if (t >= 1.0f) {
+                // apply final state
+                impl->view.setPosition(_camera.longitude, _camera.latitude);
+                impl->view.setZoom(_camera.zoom);
+                impl->view.setRoll(_camera.rotation);
+                impl->view.setPitch(_camera.tilt);
+            } else {
+                glm::dvec3 pos = fn(t);
+                impl->view.setPosition(pos.x, pos.y);
+                impl->view.setZoom(pos.z);
+                impl->view.setRoll(ease(rStart, rEnd, t, e));
+                impl->view.setPitch(ease(tStart, _camera.tilt, t, e));
+            }
             impl->platform.requestRender();
         };
 
