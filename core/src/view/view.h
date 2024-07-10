@@ -274,7 +274,7 @@ protected:
     float m_fov = 0.25 * PI;
     float m_maxPitch = 90.f;
     float m_minZoom = 0.f;
-    float m_maxZoom = 20.5f;
+    float m_maxZoom = 30.5f;
 
     CameraType m_type;
 
