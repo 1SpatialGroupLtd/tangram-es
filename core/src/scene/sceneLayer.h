@@ -31,7 +31,7 @@ public:
     auto priority() const { return m_options.priority; }
     auto enabled() const { return m_options.enabled; }
     auto exclusive() const { return m_options.exclusive; }
-
+    void mergeSceneLayer(const std::string& name, SceneLayer& changes);
 private:
 
     Filter m_filter;

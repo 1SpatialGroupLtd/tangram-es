@@ -1,4 +1,5 @@
 #include "scene/sceneLayer.h"
+#include "sceneLoader.h"
 
 #include <type_traits>
 
@@ -35,4 +36,10 @@ SceneLayer::SceneLayer(std::string name, Filter filter,
               });
 }
 
+void Tangram::SceneLayer::mergeSceneLayer(const std::string& name, SceneLayer& changes) {
+    m_filter = changes.m_filter;
+    m_options = changes.m_options;
+    m_sublayers = std::move(changes.m_sublayers);
+    m_rules= std::move(changes.m_rules);
+}
 }

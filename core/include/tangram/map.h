@@ -172,6 +172,9 @@ public:
     // Load the scene with the given SceneOptions
     SceneID loadScene(SceneOptions&& _sceneOptions, bool _async = true);
 
+    void setLayer(const std::string& name, const std::string& yaml);
+    bool layerExists(const std::string& name) const;
+
 
     // Load the scene at the given absolute file path synchronously
     SceneID loadScene(const std::string& _scenePath, bool _useScenePosition = false,

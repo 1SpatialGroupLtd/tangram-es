@@ -595,4 +595,35 @@ Color Scene::backgroundColor(int _zoom) const {
     return m_background;
 }
 
+bool Scene::setLayer(const std::string& name, const std::string& yaml) {
+    auto root = YAML::Node();
+    root[name] = YAML::Load(yaml);
+    auto layers = SceneLoader::applyLayers(root, m_jsFunctions, m_stops, m_names);
+
+    if(layers.empty())
+        return false;
+
+    for(int i=0; i < m_layers.size(); i++) {
+        if(m_layers[i].name() == name) {
+            m_layers[i].merge(name, layers[0]);
+            return true;
+        }
+    }
+
+    m_layers.push_back(layers[0]);
+
+    return true;
+}
+
+    bool Scene::layerExists(const std::string &name) const {
+        if(name.empty())
+            return false;
+
+        for(int i=0; i < m_layers.size(); i++) {
+            if(m_layers[i].name() == name)
+                return true;
+        }
+
+        return false;
+    }
 }

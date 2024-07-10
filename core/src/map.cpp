@@ -31,6 +31,8 @@
 
 #include <bitset>
 #include <cmath>
+#include <data/networkDataSource.h>
+#include <scene/dataLayer.h>
 
 namespace Tangram {
 
@@ -961,4 +963,22 @@ void toggleDebugFlag(DebugFlags _flag) {
     // }
 }
 
+
+void Map::setLayer(const std::string& name, const std::string& yaml){
+    if(name.empty() || yaml.empty())
+        return;
+
+    for (const auto& it : this->impl->clientTileSources) {
+        if (it.second.tileSource->name() == name) {
+            this->impl->scene->tileManager()->clearTileSet(it.second.tileSource->id(), true);
+            break;
+        }
+    }
+
+    impl->scene->setLayer(name, yaml);
+    this->getPlatform().requestRender();
+}
+
+bool Map::layerExists(const std::string& name) const {
+    return impl->scene->layerExists(name);
 }

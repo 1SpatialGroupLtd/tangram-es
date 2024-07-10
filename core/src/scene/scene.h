@@ -108,7 +108,8 @@ public:
     auto& tileSources() const { return m_tileSources; }
     auto& featureSelection() const { return m_featureSelection; }
     auto& fontContext() const { return m_fontContext; }
-
+    bool setLayer(const std::string& name, const std::string& yaml);
+    bool layerExists(const std::string& name) const;
     const auto& config() const { return m_config; }
     const auto& functions() const { return m_jsFunctions; }
     const auto& layers() const { return m_layers; }

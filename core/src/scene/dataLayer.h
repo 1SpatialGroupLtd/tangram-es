@@ -14,12 +14,11 @@ class DataLayer : public SceneLayer {
     std::vector<std::string> m_collections;
 
 public:
-
     DataLayer(SceneLayer layer, std::string source, std::vector<std::string> collections);
 
     const auto& source() const { return m_source; }
     const auto& collections() const { return m_collections; }
-
+    void merge(const std::string& name, SceneLayer& other);
 };
 
 }
