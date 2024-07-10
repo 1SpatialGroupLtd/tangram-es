@@ -1,0 +1,20 @@
+#ifndef PICKRESULT_IDL
+#define PICKRESULT_IDL
+
+import "LngLat.idl";
+
+namespace TangramWinUI {
+
+[default_interface]
+runtimeclass PickResult
+{
+    PickResult();
+    UInt32 MarkerId{get;set;};
+    Int32 Identifier{get;set;};
+    LngLat Position{get;set;};
+    UInt32 FeatureId{get;set;};
+}
+
+}
+
+#endif

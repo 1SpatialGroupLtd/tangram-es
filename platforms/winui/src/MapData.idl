@@ -1,0 +1,23 @@
+#ifndef MAPDATA_IDL
+#define MAPDATA_IDL
+
+namespace TangramWinUI {
+
+[default_interface]
+runtimeclass MapData
+{
+    MapData();
+    String Name {get;};
+    void SetGeoJson(String geoJson);
+    void SetGeoJsonFromBytes(UInt8[] geoJson);
+    UInt64 AppendOrUpdateGeoJson(UInt8[] value, Boolean generateTiles);
+    UInt64 RemoveGeoJsonById(UInt64[] ids, Boolean generateTiles);
+    Boolean IsVisible {get;set;};
+    Boolean CanUpdateFeatures{get;set;};
+    void Clear();
+    void GenerateTiles();
+}
+
+}
+
+#endif

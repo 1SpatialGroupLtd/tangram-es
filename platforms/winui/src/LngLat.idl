@@ -1,0 +1,17 @@
+#ifndef LNGLAT_IDL
+#define LNGLAT_IDL
+
+namespace TangramWinUI {
+
+[default_interface]
+runtimeclass LngLat
+{
+    LngLat();
+    LngLat(Double longitude, Double latitude);
+
+    Double Longitude {get; set;};
+    Double Latitude {get; set;};
+}
+}
+
+#endif

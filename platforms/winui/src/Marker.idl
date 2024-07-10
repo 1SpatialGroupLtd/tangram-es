@@ -1,0 +1,26 @@
+#ifndef MARKER_IDL
+#define MARKER_IDL
+
+import "LngLat.idl";
+
+namespace TangramWinUI {
+
+[default_interface]
+runtimeclass Marker
+{
+    Marker();
+
+    UInt32 Id {get;};
+    Boolean IsVisible {get;set;};
+    Object UserData {get;set;};
+
+    void SetDrawOrder(Int32 drawOrder);
+    void SetPointEased(LngLat point, Int32 duration);
+    void SetPoint(LngLat point);
+    void SetDrawable(Windows.Graphics.Imaging.SoftwareBitmap bitmap);
+    void SetStylingFromString(String styleString);
+}
+
+}
+
+#endif

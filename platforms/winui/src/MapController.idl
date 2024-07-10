@@ -1,0 +1,64 @@
+#ifndef MAPCONTROLLER_IDL
+#define MAPCONTROLLER_IDL
+
+import "MapData.idl";
+import "CameraPosition.idl";
+import "LngLat.idl";
+import "Marker.idl";
+import "PickResult.idl";
+
+namespace TangramWinUI {
+[default_interface]
+runtimeclass MapController
+{
+    MapController();
+    
+    event Windows.Foundation.EventHandler<UInt32> OnSceneLoaded;    
+    event Windows.Foundation.EventHandler<Int32> OnViewComplete; 
+    event Windows.Foundation.EventHandler<Int32> OnRegionIsChanging; 
+    event Windows.Foundation.EventHandler<Boolean> OnRegionWillChange; 
+    event Windows.Foundation.EventHandler<Boolean> OnRegionDidChange; 
+
+    void Init(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
+    void RequestRender();
+    Windows.Foundation.IAsyncAction Shutdown();
+    void HandlePanGesture(Single startX, Single startY, Single endX, Single endY);
+    void HandlePinchGesture(Single x, Single y, Single scale, Single velocity);
+    void HandleShoveGesture(Single distance);
+    void HandleFlingGesture(Single x, Single y, Single velocityX, Single velocityY);
+    void HandleRotateGesture(Single x, Single y, Single angle);
+    void HandleDoubleTapGesture(Single x, Single y);
+    void HandleTapGesture(Single x, Single y);
+
+    CameraPosition GetCameraPosition();
+    void UpdateCameraPosition(LngLat lngLat, Single duration);
+    void UpdateCameraPosition(LngLat sw, LngLat ne, Int32 paddingLeft, Int32 paddingTop, Int32 paddingRight, Int32 paddingBottom, Single duration);
+    LngLat ScreenPositionToLngLat(Double x, Double y);
+    void CaptureFrame(Windows.Foundation.EventHandler<Windows.Graphics.Imaging.SoftwareBitmap> callback);
+    void SetLayer(String layerName, String style);
+    void SetTileSourceUrl(String sourceName, String url);
+    String GetTileSourceUrl(String sourceName);
+    Int32 LoadSceneYaml(String yaml, String resourceRoot);
+    Boolean LayerExists(String layerName);
+    MapData AddDataLayer(String layerName);
+    void RemoveDataLayer(MapData layer);
+    void RemoveMarker(Marker marker);
+    Marker AddMarker();
+    void RemoveAllMarkers();
+    void SetMaxZoomLevel(Single maxZoomLevel);
+    Single GetPixelsPerMeter();
+    Single GetRotationAngle();
+    
+    void SetPickRadius(Single radius);
+    void PickMarker(Single posX, Single posY, Int32 identifier);
+    void PickFeature(Single posX, Single posY, Int32 identifier);
+    void PickLabel(Single posX, Single posY, Int32 identifier);
+    void SetMarkerPickHandler(Windows.Foundation.EventHandler<PickResult> handler);
+    void SetFeaturePickHandler(Windows.Foundation.EventHandler<PickResult> handler);
+    void SetLabelPickHandler(Windows.Foundation.EventHandler<PickResult> handler);
+
+    void SetMapRegionStateIdle();
+}
+
+}
+#endif

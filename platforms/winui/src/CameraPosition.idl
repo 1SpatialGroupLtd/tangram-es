@@ -1,0 +1,20 @@
+#ifndef CAMERAPOSITION_IDL
+#define CAMERAPOSITION_IDL
+
+namespace TangramWinUI {
+
+[default_interface]
+runtimeclass CameraPosition
+{
+    CameraPosition();
+
+    Single Tilt { get; set; };
+    Single Zoom { get; set; };
+    Single Rotation { get; set; };
+    Double Latitude { get; set; };
+    Double Longitude { get; set; };
+}
+
+}
+
+#endif
