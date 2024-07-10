@@ -107,7 +107,9 @@ Map::Map(std::unique_ptr<Platform> _platform) : platform(std::move(_platform)) {
     impl = std::make_unique<Impl>(*platform);
 }
 
-Map::~Map() {
+void Map::shutdown() {
+    if (destroyed) return;
+    destroyed = true;
     // Let the platform stop all outstanding tasks:
     // Send cancel to UrlRequests so any thread blocking on a response can join,
     // and discard incoming UrlRequest directly.
@@ -128,6 +130,9 @@ Map::~Map() {
     Primitives::deinit();
 }
 
+Map::~Map() {
+    shutdown();
+}
 
 SceneID Map::loadScene(SceneOptions&& _sceneOptions, bool _async) {
     if (_async) {
@@ -218,6 +223,8 @@ void Map::resize(int _newWidth, int _newHeight) {
 
 MapState Map::update(float _dt) {
 
+    if (!impl->scene) { return MapState{}; }
+
     FrameInfo::beginUpdate();
 
     impl->jobQueue.runJobs();
@@ -261,7 +268,7 @@ MapState Map::update(float _dt) {
 }
 
 void Map::render() {
-
+    if (!impl->scene) return;
     auto& scene = *impl->scene;
     auto& view = impl->view;
     auto& renderState = impl->renderState;
@@ -684,7 +691,9 @@ void Map::Impl::setPixelScale(float _pixelsPerPoint) {
         return;
     }
     view.setPixelScale(_pixelsPerPoint);
-    scene->setPixelScale(_pixelsPerPoint);
+
+    if (scene)
+        scene->setPixelScale(_pixelsPerPoint);
 }
 
 void Map::setCameraType(int _type) {
@@ -893,8 +902,10 @@ void Map::setupGL() {
 
     impl->renderState.invalidate();
 
-    //impl->scene->tileManager()->clearTileSets();
-    impl->scene->markerManager()->rebuildAll();
+    if (impl->scene) {
+        //impl->scene->tileManager()->clearTileSets();
+        impl->scene->markerManager()->rebuildAll();
+    }
 
     if (impl->selectionBuffer->valid()) {
         impl->selectionBuffer = std::make_unique<FrameBuffer>(impl->selectionBuffer->getWidth(),

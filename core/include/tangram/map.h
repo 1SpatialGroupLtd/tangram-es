@@ -175,12 +175,15 @@ public:
     void setLayer(const std::string& name, const std::string& yaml);
     bool layerExists(const std::string& name) const;
 
+    // a hacky method to trigger non-move-pan to refresh a layer after making it visible again
+    void imitateMove();
     bool getTileSourceVisibility(const std::string& tileSourceId);
     bool setTileSourceVisibility(const std::string& sourceName, bool isVisible);
     bool setTileSourceUrl(const std::string& sourceName, const std::string& url);
     std::string getTileSourceUrl(const std::string& sourceName);
     void clearTileCache(int32_t sourceId);
     float pixelsPerMeter() const;
+    void shutdown();
 
     // Load the scene at the given absolute file path synchronously
     SceneID loadScene(const std::string& _scenePath, bool _useScenePosition = false,
@@ -473,6 +476,7 @@ private:
 
     class Impl;
     std::unique_ptr<Impl> impl;
+    bool destroyed{};
 
 };
 
