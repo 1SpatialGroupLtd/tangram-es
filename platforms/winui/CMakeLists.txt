@@ -31,11 +31,29 @@ add_compile_options("/EHsc")
 
 find_package(CURL REQUIRED)
 
-# TODO: use some variable for these paths
-set(ANGLE_GLESv2_LIBRARY "${CMAKE_SOURCE_DIR}/angle/binaries/libGLESv2.dll")
-set(ANGLE_EGL_LIBRARY "${CMAKE_SOURCE_DIR}/angle/binaries/libEGL.dll")
-set(ANGLE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/angle/angle/include")
-					   
+set(NUGET_PACKAGES "Microsoft.Windows.CppWinRT_2.0.240405.15;Microsoft.Windows.SDK.BuildTools_10.0.22621.756;Microsoft.WindowsAppSDK_1.5.240428000")
+
+if(NOT DEFINED ANGLE_NUGET_PACKAGE)
+	if(NOT DEFINED ANGLE_INCLUDE_DIR)
+		message(FATAL_ERROR "ANGLE_INCLUDE_DIR must be set and point to ANGLE's include directory like: angle/include")
+	endif()
+
+	if(NOT DEFINED ANGLE_LIB_DIR)
+		message(FATAL_ERROR "ANGLE_LIB_DIR must be set and point to the directory of the ANGLE windows dlls")
+	endif()
+	
+	set(ANGLE_GLESv2_DLL "${ANGLE_LIB_DIR}/libGLESv2.dll")
+	set(ANGLE_EGL_DLL "${ANGLE_LIB_DIR}/libEGL.dll")
+	set(ANGLE_LIB_FILES "${ANGLE_EGL_DLL}.lib" "${ANGLE_GLESv2_DLL}.lib")	
+else()
+	set(ANGLE_LIB_DIR "")
+	set(ANGLE_INCLUDE_DIR "")
+	set(ANGLE_LIB_FILES "")
+	set(NUGET_PACKAGES "${NUGET_PACKAGES};${ANGLE_NUGET_PACKAGE}")
+	set(ANGLE_GLESv2_DLL "${CMAKE_SOURCE_DIR}/angle/binaries/libGLESv2.dll")
+	set(ANGLE_EGL_DLL "${CMAKE_SOURCE_DIR}/angle/binaries/libEGL.dll")
+endif()
+
 add_library(
   TangramWinUI
   SHARED
@@ -93,8 +111,7 @@ target_link_libraries(
   crypt32
   wldap32
   ${CURL_LIBRARIES}
-  "${ANGLE_EGL_LIBRARY}.lib"
-  "${ANGLE_GLESv2_LIBRARY}.lib"
+  ${ANGLE_LIB_FILES}
 )
 
 # Set source file dependencies properly for Xaml and non-Xaml IDL
@@ -141,11 +158,11 @@ endforeach()
 add_custom_command(
 	TARGET TangramWinUI
 	POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${ANGLE_GLESv2_LIBRARY}" $<TARGET_FILE_DIR:TangramWinUI>
+	"${ANGLE_GLESv2_DLL}" $<TARGET_FILE_DIR:TangramWinUI>
 )
 
 add_custom_command(
 	TARGET TangramWinUI
 	POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${ANGLE_EGL_LIBRARY}" $<TARGET_FILE_DIR:TangramWinUI>
+	"${ANGLE_EGL_DLL}" $<TARGET_FILE_DIR:TangramWinUI>
 )
