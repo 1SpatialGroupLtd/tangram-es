@@ -46,7 +46,7 @@ public:
     const char* mimeType() const override { return "application/geo+json"; };
 
     // Add geometry from a GeoJSON string
-    void addData(const std::string& _data);
+    uint64_t addData(const std::string& _data);
 
     void addPointFeature(Properties&& properties, LngLat coordinates);
 
@@ -65,6 +65,11 @@ public:
     std::shared_ptr<TileTask> createTask(TileID _tileId) override;
 
     void cancelLoadingTile(TileTask& _task) override {};
+    bool canUpdateFeatures() const { return m_canUpdateFeatures;}
+    void setCanUpdateFeatures(bool enable)  { m_canUpdateFeatures = enable;}
+
+    uint64_t removeFeatures(const uint64_t *ids, uint64_t length);
+    uint64_t appendOrUpdateFeatures(const std::string& _data);
 
 protected:
 
@@ -76,6 +81,7 @@ protected:
     mutable std::mutex m_mutexStore;
     bool m_hasPendingData = false;
     bool m_generateCentroids = false;
+    bool m_canUpdateFeatures = false;
 
     Platform& m_platform;
 

@@ -220,17 +220,34 @@ void ClientDataSource::clearFeatures() {
     m_store->properties.clear();
 }
 
-void ClientDataSource::addData(const std::string& _data) {
-
+uint64_t ClientDataSource::addData(const std::string& _data) {
+    uint64_t added{};
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
     const auto json = geojson::parse(_data);
     auto features = geojsonvt::geojson::visit(json, geojsonvt::ToFeatureCollection{});
 
-    for (auto& feature : features) {
+    if(m_canUpdateFeatures)
+    {
+        // reserving some extra features to avoid later huge allocations when we append features
+        m_store->features.reserve(features.size() + 500);
+        m_store->properties.reserve(features.size() + 500);
+    }
 
-        feature.id = uint64_t(m_store->properties.size());
+    for (auto& feature : features) {
+        if(m_canUpdateFeatures)
+        {
+            if(!feature.id.is<uint64_t>() || feature.id.get<uint64_t>() == 0)
+                continue;
+        }
+        else {
+            feature.id = uint64_t(m_store->properties.size());
+        }
+
+        feature.indexInArray = m_store->properties.size();
+
         m_store->properties.emplace_back();
+
         Properties& props = m_store->properties.back();
 
         for (const auto& prop : feature.properties) {
@@ -238,12 +255,16 @@ void ClientDataSource::addData(const std::string& _data) {
             prop_visitor visitor = {props, key};
             mapbox::util::apply_visitor(visitor, prop.second);
         }
+
         feature.properties.clear();
+
+        ++added;
     }
 
     m_store->features.insert(m_store->features.end(),
                              std::make_move_iterator(features.begin()),
                              std::make_move_iterator(features.end()));
+    return added;
 }
 
 void ClientDataSource::addPointFeature(Properties&& properties, LngLat coordinates) {
@@ -357,12 +378,155 @@ std::shared_ptr<TileData> ClientDataSource::parse(const TileTask& _task) const {
         Feature feature(m_id);
 
         if (geometry::geometry<int16_t>::visit(it.geometry, add_geometry{ feature })) {
-            feature.props = m_store->properties[it.id.get<uint64_t>()];
-            layer.features.emplace_back(std::move(feature));
+            if(it.indexInArray >= m_store->features.size()) {
+                LOGE("indexOfArray is out of bound!");
+            }
+            else
+            {
+                feature.props = m_store->properties[it.indexInArray];
+                layer.features.emplace_back(std::move(feature));
+            }
         }
     }
 
     return data;
 }
 
+}
+
+static std::vector<uint64_t> filterIds(mapbox::geojson::feature_collection& features)
+{
+    std::vector<uint64_t> ids;
+
+    for(int i = 0; i < features.size(); i++) {
+        if (!features[i].id.is<uint64_t>() || features[i].id.get<uint64_t>() == 0) {
+            features.erase(features.begin() + i);
+            i--;
+            continue;
+        }
+
+        ids.push_back(features[i].id.get<uint64_t>());
+    }
+
+    return ids;
+}
+
+uint64_t Tangram::ClientDataSource::removeFeatures(const uint64_t *idsArray, uint64_t length) {
+    std::lock_guard<std::mutex> lock(m_mutexStore);
+
+    if (!idsArray || !m_canUpdateFeatures || m_store->features.empty() || length == 0)
+        return 0;
+
+    uint64_t updated = 0;
+    std::vector<uint64_t> ids{idsArray, idsArray + length};
+    size_t firstRemovedIndex = 0;
+    for (int store_index = 0; store_index < m_store->features.size(); store_index++) {
+        for (auto update_index = 0; update_index < ids.size(); update_index++) {
+            if (m_store->features[store_index].id.get<uint64_t>() == ids[update_index]) {
+                // remember the first removed
+                if(updated == 0) firstRemovedIndex = store_index;
+
+                m_store->properties.erase(m_store->properties.begin() + store_index);
+                m_store->features.erase(m_store->features.begin() + store_index);
+
+                ids.erase(ids.begin() + update_index);
+                ++updated;
+                --store_index;
+                break;
+            }
+        }
+    }
+
+    if(updated) {
+        if(m_store->features.capacity() - m_store->features.size() > 1000)
+        {
+            m_store->features.reserve(m_store->features.size() + 500);
+            m_store->properties.reserve(m_store->features.size() + 500);
+        }
+
+        // update the indexInArray after removing the elements
+        for (size_t i = firstRemovedIndex; i < m_store->features.size(); ++i)
+            m_store->features[i].indexInArray = i;
+    }
+
+    return updated;
+}
+
+uint64_t Tangram::ClientDataSource::appendOrUpdateFeatures(const std::string &_data) {
+    std::lock_guard<std::mutex> lock(m_mutexStore);
+
+    if (!m_canUpdateFeatures)
+        return 0;
+
+    const auto json = geojson::parse(_data);
+    auto features = geojsonvt::geojson::visit(json, geojsonvt::ToFeatureCollection{});
+
+    uint64_t updated = 0;
+
+    auto ids = filterIds(features);
+    if(ids.empty()) return 0;
+
+    // first try to update features
+    for (int store_index = 0; store_index < m_store->features.size(); store_index++) {
+        for (int update_index = 0; update_index < ids.size(); update_index++) {
+            auto store_feature = m_store->features[store_index];
+
+            if (store_feature.id.get<uint64_t>() == ids[update_index]) {
+                Properties &props = m_store->properties[store_index];
+                props.clear();
+
+                auto &feature = features[update_index];
+                for (const auto &prop: feature.properties) {
+                    auto key = prop.first;
+                    Tangram::prop_visitor visitor = {props, key};
+                    mapbox::util::apply_visitor(visitor, prop.second);
+                }
+                feature.properties.clear();
+                m_store->features[store_index] = std::move(features[update_index]);
+                m_store->features[store_index].indexInArray = store_index;
+
+                ++updated;
+
+                features.erase(features.begin() + update_index);
+                ids.erase(ids.begin() + update_index);
+
+                if (ids.empty())
+                    return updated;
+
+                update_index--;
+            }
+        }
+    }
+
+    if(m_store->features.capacity() < m_store->features.size() + ids.size())
+    {
+        auto new_cap = m_store->features.size() + ids.size() + 500;
+        m_store->features.reserve(new_cap);
+        m_store->properties.reserve(new_cap);
+    }
+
+    // insert the remaining ones
+    for (auto id: ids) {
+        auto it = std::find_if(features.begin(), features.end(),
+                               [id](const mapbox::geojson::feature &x) {
+                                   return x.id.get<uint64_t>() == id;
+                               });
+
+        if (it == features.end()) continue;
+        m_store->properties.emplace_back();
+        Properties &props = m_store->properties.back();
+
+        for (const auto &prop: it->properties) {
+            auto key = prop.first;
+            prop_visitor visitor = {props, key};
+            mapbox::util::apply_visitor(visitor, prop.second);
+        }
+
+        it->properties.clear();
+        it->indexInArray = m_store->features.size();
+        m_store->features.push_back(std::move(*it));
+        ++updated;
+    }
+
+    return updated;
 }
