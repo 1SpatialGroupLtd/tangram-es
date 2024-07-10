@@ -15,15 +15,15 @@
 
 - (instancetype)initWithCenter:(CLLocationCoordinate2D)center
                           zoom:(CGFloat)zoom
-                       bearing:(CLLocationDirection)bearing
-                         pitch:(CGFloat)pitch
+                      rotation:(CGFloat)rotation
+                         tilt:(CGFloat)tilt
 {
     self = [super init];
     if (self) {
         _center = center;
         _zoom = zoom;
-        _bearing = bearing;
-        _pitch = pitch;
+        _rotation = rotation;
+        _tilt = tilt;
     }
     return self;
 }
@@ -45,8 +45,8 @@
     _center.longitude = camera->longitude;
     _center.latitude = camera->latitude;
     _zoom = camera->zoom;
-    _bearing = (-180.0 / M_PI) * camera->rotation;
-    _pitch = (180.0 / M_PI) * camera->tilt;
+    _rotation = camera->rotation;
+    _tilt = camera->tilt;
 }
 
 - (Tangram::CameraPosition)convertToCoreCamera
@@ -55,8 +55,8 @@
     camera.longitude = _center.longitude;
     camera.latitude = _center.latitude;
     camera.zoom = _zoom;
-    camera.rotation = (-M_PI / 180.0) * _bearing;
-    camera.tilt = (M_PI / 180.0) * _pitch;
+    camera.rotation = _rotation;
+    camera.tilt = _tilt;
     return camera;
 }
 
@@ -65,8 +65,8 @@
     TGCameraPosition *copy = [[TGCameraPosition alloc] init];
     copy.center = _center;
     copy.zoom = _zoom;
-    copy.bearing = _bearing;
-    copy.pitch = _pitch;
+    copy.rotation = _rotation;
+    copy.tilt = _tilt;
     return copy;
 }
 
@@ -79,12 +79,13 @@
     {
         return YES;
     }
+
     TGCameraPosition *camera = other;
     return (camera.center.latitude == _center.latitude &&
             camera.center.longitude == _center.longitude &&
             camera.zoom == _zoom &&
-            camera.bearing == _bearing &&
-            camera.pitch == _pitch);
+            camera.rotation == _rotation &&
+            camera.tilt == _tilt);
 }
 
 @end // implementation TGCameraPosition

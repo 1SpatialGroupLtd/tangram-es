@@ -12,11 +12,13 @@ import androidx.annotation.NonNull;
 public class MarkerPickResult {
 
     private final Marker marker;
+    private int identifier;
     private final LngLat coordinates;
     private final PointF screenPosition;
 
-    MarkerPickResult(final Marker marker, final double longitude, final double latitude, final float screenX, final float screenY) {
+    MarkerPickResult(final Marker marker, final int identifier, final double longitude, final double latitude, final float screenX, final float screenY) {
         this.marker = marker;
+        this.identifier = identifier;
         this.coordinates = new LngLat(longitude, latitude);
         this.screenPosition = new PointF(screenX, screenY);
     }
@@ -44,4 +46,5 @@ public class MarkerPickResult {
         return screenPosition;
     }
 
+    public int getIdentifier() { return identifier; }
 }

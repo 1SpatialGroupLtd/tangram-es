@@ -208,7 +208,7 @@ static const NSUInteger MAX_TAPPED_LOCATIONS = 8;
     markerPoint.point = newYork;
     self.locationTrackingMarker = markerPoint;
 
-    TGCameraPosition *camera = [[TGCameraPosition alloc] initWithCenter:newYork zoom:15 bearing:0 pitch:0];
+    TGCameraPosition *camera = [[TGCameraPosition alloc] initWithCenter:newYork zoom:15 rotation:0 tilt:0];
     [mapView setCameraPosition:camera];
 }
 

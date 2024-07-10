@@ -12,6 +12,10 @@ import java.util.Map;
 @Keep
 public class LabelPickResult {
 
+    public int getIdentifier() {
+        return identifier;
+    }
+
     /**
      * Options for the type of LabelPickResult
      */
@@ -24,10 +28,11 @@ public class LabelPickResult {
     private final LngLat coordinates;
     private final PointF screenPosition;
     private final LabelType type;
+    private final int identifier;
 
-
-    LabelPickResult(final Map<String, String> properties, final double longitude, final double latitude, final float screenX, final float screenY, final int type) {
+    LabelPickResult(final Map<String, String> properties, final int identifier, final double longitude, final double latitude, final float screenX, final float screenY, final int type) {
         this.properties = properties;
+        this.identifier = identifier;
         this.coordinates = new LngLat(longitude, latitude);
         this.screenPosition = new PointF(screenX, screenY);
         this.type = LabelType.values()[type];

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.util.ArrayMap;
@@ -944,10 +943,30 @@ public class MapController {
      * in a callback to the object set by {@link #setFeaturePickListener(FeaturePickListener)}
      * @param posX The horizontal screen coordinate
      * @param posY The vertical screen coordinate
+     * @param identifier Identifier of request
      */
+    public void pickFeature(final float posX, final float posY, final int identifier) {
+        if (featurePickListener != null) {
+            nativeMap.pickFeature(posX, posY, identifier);
+        }
+    }
+
     public void pickFeature(final float posX, final float posY) {
         if (featurePickListener != null) {
-            nativeMap.pickFeature(posX, posY);
+            nativeMap.pickFeature(posX, posY, 0);
+        }
+    }
+
+    /**
+     * Query the map for labeled features at the given screen coordinates; results will be returned
+     * in a callback to the object set by {@link #setLabelPickListener(LabelPickListener)}
+     * @param posX The horizontal screen coordinate
+     * @param posY The vertical screen coordinate
+     * @param identifier Identifier of request
+     */
+    public void pickLabel(final float posX, final float posY, final int identifier) {
+        if (labelPickListener != null) {
+            nativeMap.pickLabel(posX, posY, identifier);
         }
     }
 
@@ -959,7 +978,20 @@ public class MapController {
      */
     public void pickLabel(final float posX, final float posY) {
         if (labelPickListener != null) {
-            nativeMap.pickLabel(posX, posY);
+            nativeMap.pickLabel(posX, posY, 0);
+        }
+    }
+
+    /**
+     * Query the map for a {@link Marker} at the given screen coordinates; results will be returned
+     * in a callback to the object set by {@link #setMarkerPickListener(MarkerPickListener)}
+     * @param posX The horizontal screen coordinate
+     * @param posY The vertical screen coordinate
+     * @param identifier Identifier of request
+     */
+    public void pickMarker(final float posX, final float posY, final int identifier) {
+        if (markerPickListener != null) {
+            nativeMap.pickMarker(posX, posY, identifier);
         }
     }
 
@@ -971,10 +1003,9 @@ public class MapController {
      */
     public void pickMarker(final float posX, final float posY) {
         if (markerPickListener != null) {
-            nativeMap.pickMarker(posX, posY);
+            nativeMap.pickMarker(posX, posY, 0);
         }
     }
-
     /**
      * Adds a {@link Marker} to the map which can be used to dynamically add points and polylines
      * to the map.
@@ -1267,7 +1298,7 @@ public class MapController {
     }
 
     @Keep
-    void featurePickCallback(final Map<String, String> properties, final float x, final float y) {
+    void featurePickCallback(final Map<String, String> properties, final int identifier, final float x, final float y) {
         final FeaturePickListener listener = featurePickListener;
         if (listener != null) {
             uiThreadHandler.post(new Runnable() {
@@ -1275,7 +1306,7 @@ public class MapController {
                 public void run() {
                     FeaturePickResult result = null;
                     if (properties != null) {
-                        result = new FeaturePickResult(properties, x, y);
+                        result = new FeaturePickResult(properties, identifier, x, y);
                     }
                     listener.onFeaturePickComplete(result);
                 }
@@ -1284,7 +1315,7 @@ public class MapController {
     }
 
     @Keep
-    void labelPickCallback(final Map<String, String> properties, final float x, final float y, final int type, final double lng, final double lat) {
+    void labelPickCallback(final Map<String, String> properties, final int identifier, final float x, final float y, final int type, final double lng, final double lat) {
         final LabelPickListener listener = labelPickListener;
         if (listener != null) {
             uiThreadHandler.post(new Runnable() {
@@ -1292,7 +1323,7 @@ public class MapController {
                 public void run() {
                     LabelPickResult result = null;
                     if (properties != null) {
-                        result = new LabelPickResult(properties, lng, lat, x, y, type);
+                        result = new LabelPickResult(properties, identifier, lng, lat, x, y, type);
                     }
                     listener.onLabelPickComplete(result);
                 }
@@ -1301,7 +1332,7 @@ public class MapController {
     }
 
     @Keep
-    void markerPickCallback(final long markerId, final float x, final float y, final double lng, final double lat) {
+    void markerPickCallback(final long markerId, final int identifier, final float x, final float y, final double lng, final double lat) {
         final MarkerPickListener listener = markerPickListener;
         if (listener != null) {
             uiThreadHandler.post(new Runnable() {
@@ -1310,7 +1341,7 @@ public class MapController {
                     final Marker marker = markers.get(markerId);
                     MarkerPickResult result = null;
                     if (marker != null) {
-                        result = new MarkerPickResult(marker, lng, lat, x, y);
+                        result = new MarkerPickResult(marker, identifier, lng, lat, x, y);
                     }
                     listener.onMarkerPickComplete(result);
                 }
@@ -1329,6 +1360,46 @@ public class MapController {
     String getFontFallbackFilePath(final int importance, final int weightHint) {
         return FontConfig.getFontFallback(importance, weightHint);
     }
+
+    public void setTileSourceUrl(String sourceName, String url) {
+        nativeMap.setTileSourceUrl(sourceName, url);
+    }
+
+    public String getTileSourceUrl(String sourceName)
+    {
+        return nativeMap.getTileSourceUrl(sourceName);
+    }
+
+    public void setTileSourceVisibility(String sourceName, boolean isVisible) {
+        nativeMap.setTileSourceVisibility(sourceName, isVisible);
+    }
+
+    public boolean getTileSourceVisibility(String sourceName) {
+        return nativeMap.getTileSourceVisibility(sourceName);
+    }
+    @Keep
+    public void setLayer(String layerName, String yaml) {
+        nativeMap.setLayer(layerName, yaml);
+    }
+    @Keep
+    public boolean layerExists(String layerName) {
+        return nativeMap.layerExists(layerName);
+    }
+
+    @Keep
+    public float getPixelsPerMeter() { return nativeMap.pixelsPerMeter(); }
+
+    @Keep
+    public float getZoom() {  return nativeMap.getZoom(); }
+
+    @Keep
+    public float getRotation() {  return nativeMap.getRotation(); }
+
+    @Keep
+    public void setZoom(float zoom) {  nativeMap.setZoom(zoom); }
+
+    @Keep
+    public void setRotation(float rotation) {  nativeMap.setRotation(rotation); }
 
     // Native map
     // ==========

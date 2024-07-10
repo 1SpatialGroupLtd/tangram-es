@@ -10,9 +10,9 @@ class AndroidPlatform;
 class AndroidMap : public Map {
 public:
     AndroidMap(JNIEnv* env, jobject mapController, jobject assetManager);
-    void pickFeature(float posX, float posY);
-    void pickLabel(float posX, float posY);
-    void pickMarker(float posX, float posY);
+    void pickFeature(float posX, float posY, int identifier = 0);
+    void pickLabel(float posX, float posY, int identifier = 0);
+    void pickMarker(float posX, float posY, int identifier = 0);
 
     AndroidPlatform& androidPlatform();
 

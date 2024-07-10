@@ -308,20 +308,19 @@ void NATIVE_METHOD(setPickRadius)(JNIEnv* env, jobject obj, jfloat radius) {
     map->setPickRadius(radius);
 }
 
-void NATIVE_METHOD(pickFeature)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY) {
+void NATIVE_METHOD(pickFeature)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY, jint identifier) {
     auto* map = androidMapFromJava(env, obj);
-    map->pickFeature(posX, posY);
-
+    map->pickFeature(posX, posY, identifier);
 }
 
-void NATIVE_METHOD(pickMarker)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY) {
+void NATIVE_METHOD(pickMarker)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY, jint identifier) {
     auto* map = androidMapFromJava(env, obj);
-    map->pickMarker(posX, posY);
+    map->pickMarker(posX, posY, identifier);
 }
 
-void NATIVE_METHOD(pickLabel)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY) {
+void NATIVE_METHOD(pickLabel)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY, jint identifier) {
     auto* map = androidMapFromJava(env, obj);
-    map->pickLabel(posX, posY);
+    map->pickLabel(posX, posY, identifier);
 }
 
 jlong NATIVE_METHOD(markerAdd)(JNIEnv* env, jobject obj) {
@@ -578,24 +577,129 @@ void NATIVE_METHOD(addClientDataGeoJson)(JNIEnv* env, jobject obj, jlong javaSou
     source->addData(data);
 }
 
+void NATIVE_METHOD(addClientDataGeoJsonFromBytes)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jbyteArray javaByteArray) {
+    auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    auto data = JniHelpers::stringFromJavaByteArray(env, javaByteArray);
+    source->addData(data);
+}
+
 void NATIVE_METHOD(generateClientDataTiles)(JNIEnv* env, jobject obj, jlong javaSourcePtr) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    auto* map = androidMapFromJava(env, obj);
+    map->clearTileCache(source->id());
     source->generateTiles();
 }
 
 void NATIVE_METHOD(clearClientDataFeatures)(JNIEnv* env, jobject obj, jlong javaSourcePtr) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    auto* map = androidMapFromJava(env, obj);
     source->clearFeatures();
+    map->clearTileCache(source->id());
 }
 
 void NATIVE_METHOD(setClientDataVisible)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jboolean visible) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
     source->setVisible(visible);
+    auto* map = androidMapFromJava(env, obj);
+    map->imitateMove();
 }
 
 jboolean NATIVE_METHOD(getClientDataVisible)(JNIEnv* env, jobject obj, jlong javaSourcePtr) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
     return source->isVisible();
+}
+
+jstring NATIVE_METHOD(getTileSourceUrl)(JNIEnv* env, jobject obj, jstring javaSourceName) {
+    auto sourceName = JniHelpers::stringFromJavaString(env, javaSourceName);
+    auto* map = androidMapFromJava(env, obj);
+    auto url = map->getTileSourceUrl(sourceName);
+    return JniHelpers::javaStringFromString(env, url);
+}
+
+jboolean NATIVE_METHOD(setTileSourceUrl)(JNIEnv* env, jobject obj, jstring javaSourceName, jstring javaUrl) {
+    auto sourceName = JniHelpers::stringFromJavaString(env, javaSourceName);
+    auto url = JniHelpers::stringFromJavaString(env, javaUrl);
+    auto* map = androidMapFromJava(env, obj);
+    return static_cast<jboolean>(map->setTileSourceUrl(sourceName, url));
+}
+
+void NATIVE_METHOD(setTileSourceVisibility)(JNIEnv* env, jobject obj, jstring javaSourceName, jboolean javaIsVisible) {
+    auto sourceName = JniHelpers::stringFromJavaString(env, javaSourceName);
+    auto* map = androidMapFromJava(env, obj);
+    map->setTileSourceVisibility(sourceName, javaIsVisible);
+}
+
+jboolean NATIVE_METHOD(getTileSourceVisibility)(JNIEnv* env, jobject obj, jstring javaSourceName) {
+    auto sourceName = JniHelpers::stringFromJavaString(env, javaSourceName);
+    auto* map = androidMapFromJava(env, obj);
+    return static_cast<jboolean>(map->getTileSourceVisibility(sourceName));
+}
+
+void NATIVE_METHOD(setLayer)(JNIEnv* env, jobject obj, jstring javaLayerName, jstring javaYaml) {
+    auto name = JniHelpers::stringFromJavaString(env, javaLayerName);
+    auto yaml = JniHelpers::stringFromJavaString(env, javaYaml);
+    auto* map = androidMapFromJava(env, obj);
+    map->setLayer(name, yaml);
+}
+
+jboolean NATIVE_METHOD(layerExists)(JNIEnv* env, jobject obj, jstring javaLayerName) {
+    auto name = JniHelpers::stringFromJavaString(env, javaLayerName);
+    auto* map = androidMapFromJava(env, obj);
+    return map->layerExists(name);
+}
+
+jfloat NATIVE_METHOD(pixelsPerMeter)(JNIEnv* env, jobject obj) {
+    auto* map = androidMapFromJava(env, obj);
+    return static_cast<jfloat>(map->pixelsPerMeter());
+}
+
+void NATIVE_METHOD(setCanUpdateFeatures)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jboolean enabled) {
+    auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    source->setCanUpdateFeatures(enabled);
+}
+
+jboolean NATIVE_METHOD(canUpdateFeatures)(JNIEnv* env, jobject obj, jlong javaSourcePtr) {
+    auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    return source->canUpdateFeatures();
+}
+
+long NATIVE_METHOD(removeClientDataById)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jlongArray idArray) {
+    auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    auto length = env->GetArrayLength(idArray);
+    if(length == 0) return 0;
+
+    jlong* ptr = env->GetLongArrayElements(idArray, nullptr);
+
+    auto* data = reinterpret_cast<uint64_t *>(ptr);
+    auto removed = source->removeFeatures(data, env->GetArrayLength(idArray));
+    env->ReleaseLongArrayElements(idArray, ptr, 0);
+    return (long)removed;
+}
+
+long NATIVE_METHOD(appendOrUpdateClientDataFromBytes)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jbyteArray javaByteArray) {
+    auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
+    auto data = JniHelpers::stringFromJavaByteArray(env, javaByteArray);
+    return (long)source->appendOrUpdateFeatures(data);
+}
+
+float NATIVE_METHOD(getZoom)(JNIEnv* env, jobject obj) {
+    auto* map = androidMapFromJava(env, obj);
+    return map->getRotation();
+}
+
+float NATIVE_METHOD(getRotation)(JNIEnv* env, jobject obj) {
+    auto* map = androidMapFromJava(env, obj);
+    return map->getRotation();
+}
+
+void NATIVE_METHOD(setRotation)(JNIEnv* env, jobject obj, jfloat rotation) {
+    auto* map = androidMapFromJava(env, obj);
+    map->setRotation((float)rotation);
+}
+
+void NATIVE_METHOD(setZoom)(JNIEnv* env, jobject obj, jfloat zoom) {
+    auto* map = androidMapFromJava(env, obj);
+    map->setZoom((float)zoom);
 }
 
 } // extern "C"

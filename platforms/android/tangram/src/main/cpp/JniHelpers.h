@@ -16,6 +16,7 @@ public:
 
     static std::string stringFromJavaString(JNIEnv* jniEnv, jstring javaString);
     static jstring javaStringFromString(JNIEnv* jniEnv, const std::string& string);
+    static std::string stringFromJavaByteArray(JNIEnv* jniEnv, jbyteArray array);
 
     static void cameraPositionToJava(JNIEnv* env, jobject javaCamera, const CameraPosition& camera);
 

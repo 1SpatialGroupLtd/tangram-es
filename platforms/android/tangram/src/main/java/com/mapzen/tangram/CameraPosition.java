@@ -76,4 +76,16 @@ public class CameraPosition {
     public float getTilt() {
         return tilt;
     }
+
+    public void setTilt(float tile) {
+        this.tilt = tile;
+    }
+
+    public void setZoom(float zoom) {
+        this.zoom = zoom;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
 }

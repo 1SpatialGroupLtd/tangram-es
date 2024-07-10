@@ -172,7 +172,7 @@ didRecognizeLongPressGesture:(CGPoint)location;
  @param recognizer The `UIGestureRecognizer` the recognized the gesture.
  @param displacement The displacement of the recognized gesture in the view.
  */
-- (void)mapView:(TGMapView *)view
+- (BOOL)mapView:(TGMapView *)view
      recognizer:(UIGestureRecognizer *)recognizer
 didRecognizePanGesture:(CGPoint)displacement;
 
@@ -183,7 +183,7 @@ didRecognizePanGesture:(CGPoint)displacement;
  @param recognizer The `UIGestureRecognizer` the recognized the gesture.
  @param location The position of the recognized gesture in the view.
  */
-- (void)mapView:(TGMapView *)view
+- (bool)mapView:(TGMapView *)view
      recognizer:(UIGestureRecognizer *)recognizer
 didRecognizePinchGesture:(CGPoint)location;
 
@@ -194,7 +194,7 @@ didRecognizePinchGesture:(CGPoint)location;
  @param recognizer The `UIGestureRecognizer` the recognized the gesture.
  @param location The position of the recognized gesture in the view.
  */
-- (void)mapView:(TGMapView *)view
+- (BOOL)mapView:(TGMapView *)view
      recognizer:(UIGestureRecognizer *)recognizer
 didRecognizeRotationGesture:(CGPoint)location;
 
@@ -205,8 +205,16 @@ didRecognizeRotationGesture:(CGPoint)location;
  @param recognizer The `UIGestureRecognizer` the recognized the gesture.
  @param displacement The displacement of the recognized gesture in the view.
  */
-- (void)mapView:(TGMapView *)view
+- (bool)mapView:(TGMapView *)view
      recognizer:(UIGestureRecognizer *)recognizer
 didRecognizeShoveGesture:(CGPoint)displacement;
+
+/**
+ Called when the map view finished a gesture.
+
+ @param recognizer The `UIGestureRecognizer` the recognized the gesture.
+
+ */
+- (void) didGestureFinish: (UIGestureRecognizer *)recognizer;
 
 @end // protocol TGRecognizerDelegate

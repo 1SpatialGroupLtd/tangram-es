@@ -6,9 +6,12 @@
 //
 
 #import "TGExport.h"
+#import "TGGeometry.h"
+
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreLocation/CoreLocation.h>
-
 /**
  A camera position defining a viewpoint for a map.
  */
@@ -20,13 +23,13 @@ TG_EXPORT
 
  @param center The location at the center of the map view
  @param zoom The zoom level of the map view, lower values show more area
- @param bearing The orientation of the map view in degrees clockwise from North
- @param pitch The tilt of the map view in degrees away from straight down
+ @param rotation The orientation of the map view in degrees clockwise from North
+ @param tilt The tilt of the map view in degrees away from straight down
  */
 - (instancetype)initWithCenter:(CLLocationCoordinate2D)center
                           zoom:(CGFloat)zoom
-                       bearing:(CLLocationDirection)bearing
-                         pitch:(CGFloat)pitch;
+                      rotation:(CGFloat)rotation
+                          tilt:(CGFloat)tilt;
 
 /**
  The coordinate at the center of the map view.
@@ -41,11 +44,11 @@ TG_EXPORT
 /**
  The orientation of the map view in degrees clockwise from North.
  */
-@property (assign, nonatomic) CLLocationDirection bearing;
+@property (assign, nonatomic) CGFloat rotation;
 
 /**
  The tilt of the map view in degrees away from straight down.
  */
-@property (assign, nonatomic) CGFloat pitch;
+@property (assign, nonatomic) CGFloat tilt;
 
 @end // interface TGCameraPosition

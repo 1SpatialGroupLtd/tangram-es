@@ -85,6 +85,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)clear;
 
+- (void) setGeoJsonFromBytes: (nonnull Byte[]) geoJsonBytes length: (int)length;
 /**
  Permanently removes this map data from the map view.
 

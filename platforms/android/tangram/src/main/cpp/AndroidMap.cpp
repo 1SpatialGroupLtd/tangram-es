@@ -23,9 +23,9 @@ void AndroidMap::jniOnLoad(JavaVM* javaVM, JNIEnv* jniEnv) {
     jclass mapControllerClass = jniEnv->FindClass("com/mapzen/tangram/MapController");
     sceneReadyCallbackMID = jniEnv->GetMethodID(mapControllerClass, "sceneReadyCallback", "(IILjava/lang/String;Ljava/lang/String;)V");
     cameraAnimationCallbackMID = jniEnv->GetMethodID(mapControllerClass, "cameraAnimationCallback", "(Z)V");
-    featurePickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "featurePickCallback", "(Ljava/util/Map;FF)V");
-    labelPickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "labelPickCallback", "(Ljava/util/Map;FFIDD)V");
-    markerPickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "markerPickCallback", "(JFFDD)V");
+    featurePickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "featurePickCallback", "(Ljava/util/Map;IFF)V");
+    labelPickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "labelPickCallback", "(Ljava/util/Map;IFFIDD)V");
+    markerPickCallbackMID = jniEnv->GetMethodID(mapControllerClass, "markerPickCallback", "(JIFFDD)V");
 
     // We need a reference to the class object later to invoke the constructor. FindClass produces a
     // local reference that may not be valid later, so create a global reference to the class.
@@ -68,9 +68,9 @@ AndroidMap::AndroidMap(JNIEnv* env, jobject mapController, jobject assetManager)
     });
 }
 
-void AndroidMap::pickFeature(float posX, float posY) {
+void AndroidMap::pickFeature(float posX, float posY, int identifier) {
 
-    pickFeatureAt(posX, posY, [this](const FeaturePickResult* featurePickResult) {
+    pickFeatureAt(posX, posY, identifier, [this](const FeaturePickResult* featurePickResult) {
         JniThreadBinding jniEnv(JniHelpers::getJVM());
 
         float x = 0.f, y = 0.f;
@@ -92,9 +92,9 @@ void AndroidMap::pickFeature(float posX, float posY) {
     });
 }
 
-void AndroidMap::pickLabel(float posX, float posY) {
+void AndroidMap::pickLabel(float posX, float posY,  int identifier) {
 
-    pickLabelAt(posX, posY, [this](const LabelPickResult* labelPickResult) {
+    pickLabelAt(posX, posY, identifier, [this](const LabelPickResult* labelPickResult) {
         JniThreadBinding jniEnv(JniHelpers::getJVM());
 
         float x = 0.f, y = 0.f;
@@ -122,24 +122,26 @@ void AndroidMap::pickLabel(float posX, float posY) {
     });
 }
 
-void AndroidMap::pickMarker(float posX, float posY) {
+void AndroidMap::pickMarker(float posX, float posY, int identifier) {
 
-    pickMarkerAt(posX, posY, [this](const MarkerPickResult* markerPickResult) {
+    pickMarkerAt(posX, posY, identifier, [this](const MarkerPickResult* markerPickResult) {
         JniThreadBinding jniEnv(JniHelpers::getJVM());
 
         float x = 0.f, y = 0.f;
         double lng = 0., lat = 0.;
         jlong markerID = 0;
+        int identifier = 0;
 
         if (markerPickResult) {
             x = markerPickResult->position[0];
             y = markerPickResult->position[1];
             lng = markerPickResult->coordinates.longitude;
             lat = markerPickResult->coordinates.latitude;
+            identifier = markerPickResult->identifier;
             markerID = markerPickResult->id;
         }
 
-        jniEnv->CallVoidMethod(m_mapController, markerPickCallbackMID, markerID, x, y, lng, lat);
+        jniEnv->CallVoidMethod(m_mapController, markerPickCallbackMID, markerID, identifier, x, y, lng, lat);
     });
 }
 

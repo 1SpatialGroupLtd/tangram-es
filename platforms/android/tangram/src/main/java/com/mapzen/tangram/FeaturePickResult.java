@@ -7,10 +7,12 @@ import java.util.Map;
 public class FeaturePickResult {
 
     private final Map<String, String> properties;
+    private final int identifier;
     private final PointF screenPosition;
 
-    FeaturePickResult(Map<String, String> properties, float screenX, float screenY) {
+    FeaturePickResult(Map<String, String> properties, int identifier, float screenX, float screenY) {
         this.properties = properties;
+        this.identifier = identifier;
         this.screenPosition = new PointF(screenX, screenY);
     }
 
@@ -27,4 +29,5 @@ public class FeaturePickResult {
     public PointF getScreenPosition() {
         return screenPosition;
     }
+    public int getIdentifier() { return identifier; }
 }

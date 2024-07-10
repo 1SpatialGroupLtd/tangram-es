@@ -55,8 +55,9 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     if (!self.map) {
         return;
     }
-
-    dataSource->clearFeatures();
+    
+    [self.map clearTileCache: dataSource->id()];
+    
     for (TGMapFeature *feature in features) {
         Tangram::Properties properties;
         TGFeaturePropertiesConvertToCoreProperties(feature.properties, properties);
@@ -100,7 +101,10 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     }
 
     std::string sourceData = std::string([data UTF8String]);
+
     dataSource->clearFeatures();
+    [self.map clearTileCache: dataSource->id()];
+    
     dataSource->addData(sourceData);
     dataSource->generateTiles();
 }
@@ -112,6 +116,8 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     }
 
     dataSource->clearFeatures();
+    [self.map clearTileCache: dataSource->id()];
+
     dataSource->generateTiles();
 }
 
@@ -134,6 +140,14 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
 - (void)setVisible:(BOOL)visible
 {
     dataSource->setVisible(visible);
+}
+
+- (void) setGeoJsonFromBytes: (nonnull Byte[]) geoJsonBytes length: (int)length
+{
+    NSData *geoJsonBytesHandler = [NSData dataWithBytesNoCopy:geoJsonBytes length:length freeWhenDone:YES];
+    NSString *geoJsonString = [[NSString alloc] initWithData:geoJsonBytesHandler encoding:NSUTF8StringEncoding];
+    
+    [self setGeoJson: geoJsonString];
 }
 
 @end

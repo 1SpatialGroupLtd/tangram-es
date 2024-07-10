@@ -61,6 +61,22 @@ std::string JniHelpers::stringFromJavaString(JNIEnv* jniEnv, jstring javaString)
     return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>().to_bytes(chars);
 }
 
+std::string JniHelpers::stringFromJavaByteArray(JNIEnv* jniEnv, jbyteArray array) {
+    if (array == nullptr)
+        return {};
+
+    jsize num_bytes = jniEnv->GetArrayLength(array);
+
+    if(num_bytes == 0)
+        return {};
+
+    jbyte* elements = jniEnv->GetByteArrayElements(array, nullptr);
+    auto str = std::string(reinterpret_cast<char*>(elements), static_cast<unsigned int>(num_bytes));
+
+    jniEnv->ReleaseByteArrayElements(array, elements, 0);
+    return std::move(str);
+}
+
 jstring JniHelpers::javaStringFromString(JNIEnv* jniEnv, const std::string& string) {
     auto chars = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>().from_bytes(string);
     auto s = reinterpret_cast<const jchar*>(chars.empty() ? u"" : chars.data());

@@ -3,7 +3,6 @@ package com.mapzen.tangram;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
-import android.graphics.Rect;
 
 class NativeMap {
 
@@ -59,9 +58,9 @@ class NativeMap {
     native synchronized void handleRotateGesture(float posX, float posY, float rotation);
     native synchronized void handleShoveGesture(float distance);
     native synchronized void setPickRadius(float radius);
-    native synchronized void pickFeature(float posX, float posY);
-    native synchronized void pickLabel(float posX, float posY);
-    native synchronized void pickMarker(float posX, float posY);
+    native synchronized void pickFeature(float posX, float posY, int identifier);
+    native synchronized void pickLabel(float posX, float posY, int identifier);
+    native synchronized void pickMarker(float posX, float posY, int identifier);
     native synchronized long markerAdd();
     native synchronized boolean markerRemove(long markerID);
     native synchronized boolean markerSetStylingFromString(long markerID, String styling);
@@ -89,6 +88,22 @@ class NativeMap {
     native synchronized void setDebugFlag(int flag, boolean on);
 
     native void onUrlComplete(long requestHandle, byte[] rawDataBytes, String errorMessage);
+    native synchronized void addClientDataGeoJsonFromBytes(long sourcePtr, byte[] geoJson);
+    native synchronized long appendOrUpdateClientDataFromBytes(long sourcePtr, byte[] geoJson);
+    native synchronized long removeClientDataById(long sourcePtr, long[] ids);
+    native synchronized void setCanUpdateFeatures(long sourcePtr, boolean enable);
+    native synchronized boolean canUpdateFeatures(long sourcePtr);
+    native synchronized boolean setTileSourceUrl(String sourceName, String url);
+    native synchronized String getTileSourceUrl(String sourceName);
+    native synchronized void setTileSourceVisibility(String sourceName, boolean isVisible);
+    native synchronized boolean getTileSourceVisibility(String sourceName);
+    native synchronized void setLayer(String layerName, String yaml);
+    native synchronized boolean layerExists(String layerName);
+    native synchronized float pixelsPerMeter();
+    native synchronized float getRotation();
+    native synchronized void setRotation(float rotation);
+    native synchronized float getZoom();
+    native synchronized void setZoom(float zoom);
 
     private final long nativePointer;
 }

@@ -278,12 +278,12 @@ TG_EXPORT
 /**
  The orientation of to the map view clockwise from true North
  */
-@property (assign, nonatomic) CLLocationDirection bearing;
+@property (assign, nonatomic) CLLocationDirection rotation;
 
 /**
  The tilt angle of the map view in degrees away from straight down
  */
-@property (assign, nonatomic) CGFloat pitch;
+@property (assign, nonatomic) CGFloat tilt;
 
 #pragma mark Coordinate Conversions
 
@@ -570,6 +570,11 @@ TG_EXPORT
  @param debugFlag The debug flag to toggle the state of.
  */
 - (void)toggleDebugFlag:(TGDebugFlag)debugFlag;
+
+- (bool) layerExists: (NSString*)layerName;
+- (void) setLayer: (NSString*)layerName yaml:(NSString*)yaml;
+- (bool) setTileSourceUrl: (NSString*)sourceName url:(NSString*)url;
+- (void) clearTileCache: (int)sourceId;
 
 @end // interface TGMapView
 

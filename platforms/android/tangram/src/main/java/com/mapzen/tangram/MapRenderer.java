@@ -101,7 +101,7 @@ class MapRenderer implements GLSurfaceView.Renderer {
     }
 
     @NonNull
-    private Bitmap capture() {
+    public Bitmap capture() {
         GLViewHolder viewHolder = map.getGLViewHolder();
         if (viewHolder == null) {
             throw new IllegalStateException("MapController GLViewHolder is null");
