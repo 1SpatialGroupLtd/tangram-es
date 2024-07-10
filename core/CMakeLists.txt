@@ -232,12 +232,18 @@ if (WIN32)
   target_compile_definitions(tangram-core PUBLIC _USE_MATH_DEFINES)
 endif()
 
+SET(YAML_CPP_LINK yaml-cpp)
+
+if(TANGRAM_USE_VCPKG)
+	SET(YAML_CPP_LINK yaml-cpp::yaml-cpp)
+endif()
+
 # Link core library dependencies.
 target_link_libraries(tangram-core
   PRIVATE
   glm
   css-color-parser-cpp
-  yaml-cpp
+  ${YAML_CPP_LINK}
   alfons
   double-conversion
   miniz
