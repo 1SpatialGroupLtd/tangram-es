@@ -246,7 +246,7 @@ auto Stops::Numbers(const YAML::Node& node) -> Stops {
 
     float lastKey = 0;
 
-    for (const auto frameNode : node) {
+    for (const auto& frameNode : node) {
         if (!frameNode.IsSequence() || frameNode.size() != 2) { continue; }
 
         float key = frameNode[0].as<float>();
