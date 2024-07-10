@@ -39,10 +39,11 @@ git submodule update --init --recursive
 
 
 First, generate a Visual Studio solution using CMake on the command line:
+Set the ANGLE_INCLUDE_DIR to point to the ANGLE include directory and the ANGLE_LIB_DIR to point to where the built binaries can be found.
 
 ```
 mkdir windows-build-winui
-cmake -S . -B .\windows-build-winui -G "Visual Studio 17 2022" -DCMAKE_GENERATOR_PLATFORM=x64,version=10.0.19041.0 -DTANGRAM_PLATFORM=winui -DCMAKE_TOOLCHAIN_FILE=c:\Users\%USERNAME%\.vcpkg\scripts\buildsystems\vcpkg.cmake
+cmake -S . -B .\windows-build-winui -G "Visual Studio 17 2022" -DCMAKE_GENERATOR_PLATFORM=x64,version=10.0.19041.0 -DTANGRAM_PLATFORM=winui -DANGLE_INCLUDE_DIR=C:\Development\angle\include -DANGLE_LIB_DIR=C:\Development\angle\out\Release -DCMAKE_TOOLCHAIN_FILE=c:\Users\%USERNAME%\.vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
 
 Then run the build using the CMake build option:
