@@ -1,0 +1,5 @@
+<Project>
+  <ItemDefinitionGroup>
+    <Midl><OutputDirectory /></Midl>
+  </ItemDefinitionGroup>
+</Project>
