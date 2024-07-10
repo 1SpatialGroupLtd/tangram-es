@@ -49,9 +49,13 @@ else()
 	set(ANGLE_LIB_DIR "")
 	set(ANGLE_INCLUDE_DIR "")
 	set(ANGLE_LIB_FILES "")
-	set(NUGET_PACKAGES "${NUGET_PACKAGES};${ANGLE_NUGET_PACKAGE}")
-	set(ANGLE_GLESv2_DLL "${CMAKE_SOURCE_DIR}/angle/binaries/libGLESv2.dll")
-	set(ANGLE_EGL_DLL "${CMAKE_SOURCE_DIR}/angle/binaries/libEGL.dll")
+	
+	set(USER $ENV{USERNAME})
+	set(LOCAL_NUGET_CACHE_DIR "C:/Users/${USER}/.nuget/packages/${ANGLE_NUGET_PACKAGE}/${ANGLE_NUGET_PACKAGE_VERSION}")
+	set(NUGET_PACKAGES "${NUGET_PACKAGES};${ANGLE_NUGET_PACKAGE}_${ANGLE_NUGET_PACKAGE_VERSION}")
+	
+	set(ANGLE_GLESv2_DLL ${LOCAL_NUGET_CACHE_DIR}/bin/native/x64/libGLESv2.dll)
+	set(ANGLE_EGL_DLL ${LOCAL_NUGET_CACHE_DIR}/bin/native/x64/libEGL.dll)
 endif()
 
 add_library(
@@ -85,7 +89,7 @@ target_include_directories(
 set_target_properties(
   TangramWinUI   
   PROPERTIES
-  VS_PACKAGE_REFERENCES "Microsoft.Windows.CppWinRT_2.0.240405.15;Microsoft.Windows.SDK.BuildTools_10.0.22621.756;Microsoft.WindowsAppSDK_1.5.240428000"
+  VS_PACKAGE_REFERENCES "${NUGET_PACKAGES}"
   VS_GLOBAL_ProjectName TangramWinUI
   VS_GLOBAL_TargetName TangramWinUI
   VS_GLOBAL_ROOTNAMESPACE TangramWinUI
