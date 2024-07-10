@@ -7,10 +7,18 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import com.mapzen.tangram.BuildConfig;
@@ -31,17 +39,58 @@ public class DefaultHttpHandler implements HttpHandler {
 
     private final OkHttpClient okClient;
 
+    private static OkHttpClient.Builder getUnsafeOkHttpClientBuilder() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            return new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                    .hostnameVerifier(new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String hostname, SSLSession session) {
+                            return true;
+                        }
+                    });
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * @return OkHttp client builder with recommended settings for Tangram.
      */
     public static OkHttpClient.Builder getClientBuilder() {
-        return new OkHttpClient.Builder()
+        return getUnsafeOkHttpClientBuilder()
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .socketFactory(new CustomSocketFactory())
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS);
+                .readTimeout(20, TimeUnit.SECONDS);
     }
 
     /**
@@ -62,6 +111,7 @@ public class DefaultHttpHandler implements HttpHandler {
         okClient = builder.build();
     }
 
+    @Keep
     @Override
     public Object startRequest(@NonNull final String url, @NonNull final HttpHandler.Callback cb) {
         final HttpUrl httpUrl = HttpUrl.parse(url);
@@ -98,6 +148,7 @@ public class DefaultHttpHandler implements HttpHandler {
             }
         };
         final Request.Builder builder = new Request.Builder().url(httpUrl);
+        configureRequestBuilder(builder);
         // Some tile endpoints treat requests as "unauthorized" if they have no User-Agent header,
         // so add a default value to every request. Users can override this in configureRequest().
         builder.addHeader("User-Agent", "tangram");
@@ -106,6 +157,18 @@ public class DefaultHttpHandler implements HttpHandler {
         Call call = okClient.newCall(request);
         call.enqueue(callback);
         return call;
+    }
+
+    @Keep
+    protected HttpUrl addQueryParameter(HttpUrl url, String key, String value) {
+        HttpUrl.Builder builder =  url.newBuilder();
+        builder.setQueryParameter(key, value);
+        return  builder.build();
+    }
+
+    @Keep
+    protected void configureRequestBuilder(Request.Builder builder) {
+
     }
 
     @Override
@@ -118,11 +181,8 @@ public class DefaultHttpHandler implements HttpHandler {
 
     /**
      * Override this method to customize the OkHTTP client
-     * @param builder OkHTTP client builder to customize
-     * @deprecated Use {@link #DefaultHttpHandler(OkHttpClient.Builder)} to customize the client
-     * builder instead.
      */
-    @Deprecated
+    @Keep
     protected void configureClient(OkHttpClient.Builder builder) {
     }
 
@@ -131,6 +191,7 @@ public class DefaultHttpHandler implements HttpHandler {
      * @param url Request URL
      * @param builder Request builder to customize
      */
+    @Keep
     protected void configureRequest(HttpUrl url, Request.Builder builder) {
     }
 
