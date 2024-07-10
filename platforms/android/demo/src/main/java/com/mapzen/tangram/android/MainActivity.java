@@ -48,8 +48,6 @@ public class MainActivity extends AppCompatActivity implements MapView.MapReadyC
     }
 
     public void onSceneReady(int sceneId, SceneError sceneError) {
-        MapData data = map.addDataLayer("ASS_ARCS");
-        data.setGeoJson(readFile("a.json"));
         map.updateCameraPosition(CameraUpdateFactory.newLngLatZoom(new LngLat(-3.1944921855771486, 47.71273792666892), 12));
     }
 
