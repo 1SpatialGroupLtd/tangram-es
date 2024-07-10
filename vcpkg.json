@@ -1,6 +1,7 @@
 {
     "name": "tangram-es",
     "version-string": "0.1.0",
+    "builtin-baseline": "6e31ee33cc9fc93599c4ceb38e229098cf339bb7",
     "dependencies": [
         {
             "name":"curl",
@@ -28,6 +29,12 @@
                 "coretext"
             ],
             "platform": "osx"
+        },
+        {
+            "name": "imgui",
+            "features": [
+                "docking-experimental"
+            ]
         }
     ]
 }
