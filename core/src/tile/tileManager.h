@@ -44,9 +44,11 @@ public:
     /* Updates visible tile set and load missing tiles */
     void updateTileSets(const View& _view);
 
-    void clearTileSets(bool clearSourceCaches = false);
+    void clearTileSets(bool _clearSourceData = false);
 
-    void clearTileSet(int32_t _sourceId);
+    void clearTileSet(int32_t _sourceId, bool _clearSourceData = false);
+
+    void clearTileCache(int32_t _sourceId);
 
     void cancelTileTasks();
 
@@ -72,6 +74,7 @@ public:
      */
     void setCacheSize(size_t _cacheSize);
 
+    bool clearCache(int32_t _sourceId);
 protected:
 
     enum class ProxyID : uint8_t;

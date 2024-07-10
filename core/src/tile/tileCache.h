@@ -36,18 +36,22 @@ class TileCache {
 
     using CacheList = std::list<CacheEntry>;
     using CacheMap = std::unordered_map<TileCacheKey, typename CacheList::iterator>;
+    using CacheCounter = std::unordered_map<int32_t, int32_t>;
 
 public:
 
     TileCache(size_t _cacheSizeMB) :
-        m_cacheUsage(0),
-        m_cacheMaxUsage(_cacheSizeMB) {}
+            m_cacheUsage(0),
+            m_cacheMaxUsage(_cacheSizeMB) {
+        m_cacheCounter.reserve(1000);
+    }
 
     void put(int32_t _sourceId, std::shared_ptr<Tile> _tile) {
         TileCacheKey k(_sourceId, _tile->getID());
 
         m_cacheList.push_front({k, _tile});
         m_cacheMap[k] = m_cacheList.begin();
+        ++m_cacheCounter[_sourceId];
         m_cacheUsage += _tile->getMemoryUsage();
 
         limitCacheSize(m_cacheMaxUsage);
@@ -62,6 +66,7 @@ public:
             std::swap(tile, (*(it->second)).tile);
             m_cacheList.erase(it->second);
             m_cacheMap.erase(it);
+            --m_cacheCounter[_sourceId];
             m_cacheUsage -= tile->getMemoryUsage();
         }
         return tile;
@@ -89,8 +94,10 @@ public:
             }
             auto& tile = m_cacheList.back().tile;
             m_cacheUsage -= tile->getMemoryUsage();
-            m_cacheMap.erase(m_cacheList.back().key);
+            const auto& key = m_cacheList.back().key;
+            m_cacheMap.erase(key);
             m_cacheList.pop_back();
+            --m_cacheCounter[key.first];
         }
     }
 
@@ -105,12 +112,40 @@ public:
     void clear() {
         m_cacheMap.clear();
         m_cacheList.clear();
+        m_cacheCounter.clear();
         m_cacheUsage = 0;
+    }
+
+    void clearSource(int _source)
+    {
+        const auto cacheCount = m_cacheCounter[_source];
+        if(cacheCount == 0) return;
+
+        std::vector<TileCacheKey> keysToRemove;
+        keysToRemove.reserve(cacheCount);
+
+        for(auto &entry : m_cacheMap)
+        {
+            if(entry.first.first == _source) {
+                // can't delete items during iteration, just store the keys and delete them later
+                keysToRemove.push_back(entry.first);
+
+                m_cacheUsage -= entry.second->tile->getMemoryUsage();
+                m_cacheList.erase(entry.second);
+            }
+        }
+
+        // finally delete all "sourceId" entries from m_cacheMap
+        for(const auto& key : keysToRemove)
+            m_cacheMap.erase(key);
+
+        m_cacheCounter[_source] = 0;
     }
 
 private:
     CacheMap m_cacheMap;
     CacheList m_cacheList;
+    CacheCounter m_cacheCounter;
 
     int m_cacheUsage;
     int m_cacheMaxUsage;

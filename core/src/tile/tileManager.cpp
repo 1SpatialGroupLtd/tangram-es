@@ -252,14 +252,14 @@ void TileManager::cancelTileTasks() {
     m_tileCache->clear();
 }
 
-void TileManager::clearTileSets(bool clearSourceCaches) {
+void TileManager::clearTileSets(bool _clearSourceData) {
 
     for (auto& tileSet : m_tileSets) {
         tileSet.cancelTasks();
 
         tileSet.tiles.clear();
 
-        if (clearSourceCaches) {
+        if (_clearSourceData) {
             tileSet.source->clearData();
         }
     }
@@ -267,15 +267,18 @@ void TileManager::clearTileSets(bool clearSourceCaches) {
     m_tileCache->clear();
 }
 
-void TileManager::clearTileSet(int32_t _sourceId) {
+void TileManager::clearTileSet(int32_t _sourceId, bool _clearSourceData) {
     for (auto& tileSet : m_tileSets) {
         if (tileSet.source->id() != _sourceId) { continue; }
 
         tileSet.cancelTasks();
         tileSet.tiles.clear();
+
+        if (_clearSourceData)
+            tileSet.source->clearData();
     }
 
-    m_tileCache->clear();
+    m_tileCache->clearSource(_sourceId);
     m_tileSetChanged = true;
 }
 
@@ -711,4 +714,8 @@ void TileManager::setCacheSize(size_t _cacheSize) {
     m_tileCache->limitCacheSize(_cacheSize);
 }
 
+void TileManager::clearTileCache(int32_t _sourceId)
+{
+    m_tileCache->clearSource(_sourceId);
+}
 }
