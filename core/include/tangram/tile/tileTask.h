@@ -57,7 +57,7 @@ public:
     }
 
     void setPriority(double _priority) {
-        m_priority.store(_priority);
+        m_priority.store(static_cast<float>(_priority));
     }
 
     void setProxyState(bool isProxy) { m_proxyState = isProxy; }
