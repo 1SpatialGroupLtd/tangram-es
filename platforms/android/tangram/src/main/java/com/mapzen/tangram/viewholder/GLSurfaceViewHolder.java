@@ -7,14 +7,24 @@ import androidx.annotation.NonNull;
 
 
 public class GLSurfaceViewHolder implements GLViewHolder {
-    private final GLSurfaceView glSurfaceView;
+    private final IndestructibleSurfaceView glSurfaceView;
 
-    public GLSurfaceViewHolder(final GLSurfaceView glSurfaceView) {
+    public GLSurfaceViewHolder(final IndestructibleSurfaceView glSurfaceView) {
         this.glSurfaceView = glSurfaceView;
     }
 
     // GLViewHolder Methods
     // =========================
+
+    @Override
+    public boolean canDestroyGlContext() {
+        return glSurfaceView.getEglContextFactory().canDestroyContext();
+    }
+
+    @Override
+    public void setCanDestroyGlContext(boolean canDestroy) {
+        glSurfaceView.getEglContextFactory().setCanDestroyContext(canDestroy);
+    }
 
     @Override
     public void setRenderer(GLSurfaceView.Renderer renderer) {

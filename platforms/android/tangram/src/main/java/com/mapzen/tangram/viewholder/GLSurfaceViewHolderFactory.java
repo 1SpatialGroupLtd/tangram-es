@@ -16,7 +16,7 @@ public class GLSurfaceViewHolderFactory implements GLViewHolderFactory {
      */
     @Override
     public GLViewHolder build(Context context) {
-        GLSurfaceView view = new GLSurfaceView(context);
+        IndestructibleSurfaceView view = new IndestructibleSurfaceView(context);
 
         view.setEGLContextClientVersion(2);
         view.setPreserveEGLContextOnPause(true);

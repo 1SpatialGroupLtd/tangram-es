@@ -15,6 +15,9 @@ public interface GLViewHolder {
         RENDER_CONTINUOUSLY
     };
 
+    boolean canDestroyGlContext();
+    void setCanDestroyGlContext(boolean canDestroy);
+
     /**
      * Set the renderer associated with this view. Also starts the thread that
      * will call the renderer, which in turn causes the rendering to start.

@@ -109,6 +109,15 @@ public class TextureViewHolder implements GLViewHolder, SurfaceTextureListener {
     // =========================
 
     @Override
+    public boolean canDestroyGlContext() {
+        return true;
+    }
+
+    @Override
+    public void setCanDestroyGlContext(boolean canDestroy) {
+    }
+
+    @Override
     public void setRenderer(@NonNull Renderer renderer) {
         if (eglConfigChooser == null) {
             eglConfigChooser = new ConfigChooser(8, 8, 8, 0, 16, 0);
@@ -177,7 +186,6 @@ public class TextureViewHolder implements GLViewHolder, SurfaceTextureListener {
         glThread.onDestroy();
         textureView.setSurfaceTextureListener(null);
     }
-
 
     // GLThread
     // ========
