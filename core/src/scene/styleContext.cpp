@@ -328,6 +328,11 @@ bool StyleContext::evalStyle(FunctionID _id, StyleParamKey _key, StyleParam::Val
                 _val = static_cast<uint32_t>(number);
                 break;
             }
+            case StyleParamKey::interactive:
+            case StyleParamKey::text_interactive:
+            case StyleParamKey::visible:
+                _val = static_cast<uint32_t>(number) == 1;
+                break;
             default:
                 break;
         }
