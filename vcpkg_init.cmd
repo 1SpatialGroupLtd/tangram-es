@@ -29,11 +29,8 @@ function download($url, $path) {
 }
 
 # Determine VCPKG_ROOT
-if (Test-Path "$PSScriptRoot/.vcpkg-root") {
-  $env:VCPKG_ROOT = "$PSScriptRoot"
-} elseif (-Not (Test-Path env:VCPKG_ROOT)) {
-  $env:VCPKG_ROOT = "$HOME/.vcpkg"
-}
+
+$env:VCPKG_ROOT = "$HOME/.vcpkg"
 
 $VCPKG = Join-Path $env:VCPKG_ROOT vcpkg
 if ($IsWindows) {
