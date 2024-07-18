@@ -73,7 +73,7 @@ struct MapController : public MapControllerT<MapController> {
     void PickLabel(float posX, float posY, int identifier);
 
     CameraPosition GetCameraPosition();
-    void UpdateCameraPosition(LngLat lngLat, float duration);
+    void UpdateCameraPosition(const CameraPosition& cameraPosition, float duration);
     void UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, int paddingTop, int paddingRight,
                               int paddingBottom, float duration);
 

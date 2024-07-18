@@ -287,10 +287,30 @@ CameraPosition MapController::GetCameraPosition() {
     return cam;
 }
 
+void MapController::UpdateCameraPosition(const CameraPosition& cameraPosition, float duration) {
+    Tangram::CameraUpdate update{};
+    update.set = Tangram::CameraUpdate::set_tilt |
+                 Tangram::CameraUpdate::set_zoom |
+                 Tangram::CameraUpdate::set_lnglat|
+                 Tangram::CameraUpdate::set_rotation;
+
+    update.lngLat = Tangram::LngLat(cameraPosition.Longitude(), cameraPosition.Latitude());
+    update.zoom = cameraPosition.Zoom();
+    update.rotation = cameraPosition.Rotation();
+    update.tilt = cameraPosition.Tilt();
+
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return;
+
+    if (duration > 0) { SetMapRegionState(MapRegionChangeState::ANIMATING); } else {
+        SetMapRegionState(MapRegionChangeState::JUMPING);
+    }
+    
+    m_map->updateCameraPosition(update, duration);
+}
 
 void MapController::UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, int paddingTop, int paddingRight,
                                          int paddingBottom, float duration) {
-
     Tangram::CameraUpdate update{};
     update.set = Tangram::CameraUpdate::Flags::set_bounds;
     update.bounds[0] = {sw.Longitude(), sw.Latitude()};
@@ -304,20 +324,6 @@ void MapController::UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, 
         SetMapRegionState(MapRegionChangeState::JUMPING);
     }
 
-    m_map->updateCameraPosition(update, duration);
-}
-
-void MapController::UpdateCameraPosition(LngLat lngLat, float duration) {
-    Tangram::CameraUpdate update{};
-    update.set = Tangram::CameraUpdate::Flags::set_lnglat;
-    update.lngLat = Tangram::LngLat(lngLat.Longitude(), lngLat.Latitude());
-
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    if (duration > 0) { SetMapRegionState(MapRegionChangeState::ANIMATING); } else {
-        SetMapRegionState(MapRegionChangeState::JUMPING);
-    }
     m_map->updateCameraPosition(update, duration);
 }
 

@@ -31,7 +31,7 @@ runtimeclass MapController
     void HandleTapGesture(Single x, Single y);
 
     CameraPosition GetCameraPosition();
-    void UpdateCameraPosition(LngLat lngLat, Single duration);
+    void UpdateCameraPosition(CameraPosition cameraPosition, Single duration);
     void UpdateCameraPosition(LngLat sw, LngLat ne, Int32 paddingLeft, Int32 paddingTop, Int32 paddingRight, Int32 paddingBottom, Single duration);
     LngLat ScreenPositionToLngLat(Double x, Double y);
     void CaptureFrame(Windows.Foundation.EventHandler<Windows.Graphics.Imaging.SoftwareBitmap> callback);
