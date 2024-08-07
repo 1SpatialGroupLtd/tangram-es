@@ -4,7 +4,7 @@ set(TANGRAM_FRAMEWORK_VERSION "0.17.2-dev")
 set(TANGRAM_BUNDLE_IDENTIFIER "com.mapzen.TangramMap")
 
 ### Configure iOS toolchain.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0") # Applies to iOS even though the variable name says OSX.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0") # Applies to iOS even though the variable name says OSX.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 execute_process(COMMAND xcrun --sdk iphoneos --show-sdk-version OUTPUT_VARIABLE IOS_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 # Set the global BITCODE_GENERATION_MODE value to 'bitcode' for Release builds.
