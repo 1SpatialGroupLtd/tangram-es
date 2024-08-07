@@ -228,6 +228,9 @@ target_include_directories(tangram-core
   deps/double-conversion/include
 )
 
+# silent warnings regarding the deprecated usages of opengl on apple platform. Starting from iOS 12.0, the OpenGLES API is deprecated.
+target_compile_definitions(tangram-core PUBLIC GLES_SILENCE_DEPRECATION=1)
+
 if (WIN32)
   target_compile_definitions(tangram-core PUBLIC _USE_MATH_DEFINES)
 endif()

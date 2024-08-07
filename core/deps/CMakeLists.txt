@@ -5,6 +5,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-shorten-64-to-32)
 endif()
 
+if(APPLE)
+  # ignore unused-variable compilation warnings for harfbuzz when compiling with clang
+  # as they are pragma-s in the header file, it cannot be orverrided from cmake
+  add_definitions(-DHB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR -DHB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING)
+endif()
+
 ## glm ##
 #########
 add_library(glm INTERFACE)
