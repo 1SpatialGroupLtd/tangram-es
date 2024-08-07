@@ -627,6 +627,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
 }
 
 - (void)pickFeatureAt:(CGPoint)viewPosition
+           identifier:(int)identifier
 {
     if (!self.map) { return; }
 
@@ -634,7 +635,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     viewPosition.y *= self.contentScaleFactor;
 
     __weak TGMapView* weakSelf = self;
-    self.map->pickFeatureAt(viewPosition.x, viewPosition.y, [weakSelf](const Tangram::FeaturePickResult* featureResult) {
+    self.map->pickFeatureAt(viewPosition.x, viewPosition.y, identifier, [weakSelf](const Tangram::FeaturePickResult* featureResult) {
         __strong TGMapView* strongSelf = weakSelf;
 
         if (!strongSelf || ![strongSelf.mapViewDelegate respondsToSelector:@selector(mapView:didSelectFeature:atScreenPosition:)]) {
@@ -665,6 +666,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
 }
 
 - (void)pickMarkerAt:(CGPoint)viewPosition
+          identifier:(int)identifier
 {
     if (!self.map) { return; }
 
@@ -672,7 +674,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     viewPosition.y *= self.contentScaleFactor;
 
     __weak TGMapView* weakSelf = self;
-    self.map->pickMarkerAt(viewPosition.x, viewPosition.y, [weakSelf](const Tangram::MarkerPickResult* markerPickResult) {
+    self.map->pickMarkerAt(viewPosition.x, viewPosition.y, identifier, [weakSelf](const Tangram::MarkerPickResult* markerPickResult) {
         __strong TGMapView* strongSelf = weakSelf;
 
         if (!strongSelf || ![strongSelf.mapViewDelegate respondsToSelector:@selector(mapView:didSelectMarker:atScreenPosition:)]) {
@@ -706,6 +708,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
 }
 
 - (void)pickLabelAt:(CGPoint)viewPosition
+         identifier:(int)identifier
 {
     if (!self.map) { return; }
 
@@ -713,7 +716,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     viewPosition.y *= self.contentScaleFactor;
 
     __weak TGMapView* weakSelf = self;
-    self.map->pickLabelAt(viewPosition.x, viewPosition.y, [weakSelf](const Tangram::LabelPickResult* labelPickResult) {
+    self.map->pickLabelAt(viewPosition.x, viewPosition.y, identifier, [weakSelf](const Tangram::LabelPickResult* labelPickResult) {
         __strong TGMapView* strongSelf = weakSelf;
 
         if (!strongSelf || ![strongSelf.mapViewDelegate respondsToSelector:@selector(mapView:didSelectLabel:atScreenPosition:)]) {

@@ -509,7 +509,8 @@ TG_EXPORT
 
  @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickFeatureAt:(CGPoint)viewPosition;
+- (void)pickFeatureAt:(CGPoint)viewPosition
+           identifier:(int)identifier;
 
 /**
  Select a label marked as `interactive` from the map view.
@@ -522,7 +523,8 @@ TG_EXPORT
 
  @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickLabelAt:(CGPoint)viewPosition;
+- (void)pickLabelAt:(CGPoint)viewPosition
+         identifier:(int)identifier;
 
 /**
  Select a Marker marked as `interactive` from the map view.
@@ -537,7 +539,8 @@ TG_EXPORT
 
  @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickMarkerAt:(CGPoint)viewPosition;
+- (void)pickMarkerAt:(CGPoint)viewPosition
+          identifier:(int)identifier;
 
 #pragma mark Memory Management
 
