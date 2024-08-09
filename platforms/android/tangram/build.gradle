@@ -5,7 +5,7 @@ version = '0.17.2-SNAPSHOT'
 
 android {
   compileSdk 34
-  ndkVersion "27.0.12077973"
+  ndkVersion "26.3.11579264"
 
   // Specific ABI targets can be chosen with the 'abis' property as a comma-separated list of ABIs.
   // From the command line, add '-Ptangram.abis=armeabi-v7a,x86,...' to only build those ABIs.
