@@ -269,32 +269,32 @@ void NATIVE_METHOD(handleDoubleTapGesture)(JNIEnv* env, jobject obj, jfloat posX
 }
 
 void NATIVE_METHOD(handlePanGesture)(JNIEnv* env, jobject obj, jfloat startX, jfloat startY,
-                                     jfloat endX, jfloat endY) {
+                                     jfloat endX, jfloat endY, jboolean requestRender) {
     auto* map = androidMapFromJava(env, obj);
-    map->handlePanGesture(startX, startY, endX, endY);
+    map->handlePanGesture(startX, startY, endX, endY, requestRender);
 }
 
 void NATIVE_METHOD(handleFlingGesture)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY,
-                                       jfloat velocityX, jfloat velocityY) {
+                                       jfloat velocityX, jfloat velocityY, jboolean requestRender) {
     auto* map = androidMapFromJava(env, obj);
-    map->handleFlingGesture(posX, posY, velocityX, velocityY);
+    map->handleFlingGesture(posX, posY, velocityX, velocityY, requestRender);
 }
 
 void NATIVE_METHOD(handlePinchGesture)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY,
-                                       jfloat scale, jfloat velocity) {
+                                       jfloat scale, jfloat velocity, jboolean requestRender) {
     auto* map = androidMapFromJava(env, obj);
-    map->handlePinchGesture(posX, posY, scale, velocity);
+    map->handlePinchGesture(posX, posY, scale, velocity, requestRender);
 }
 
 void NATIVE_METHOD(handleRotateGesture)(JNIEnv* env, jobject obj, jfloat posX, jfloat posY,
-                                        jfloat rotation) {
+                                        jfloat rotation, jboolean requestRender) {
     auto* map = androidMapFromJava(env, obj);
-    map->handleRotateGesture(posX, posY, rotation);
+    map->handleRotateGesture(posX, posY, rotation, requestRender);
 }
 
-void NATIVE_METHOD(handleShoveGesture)(JNIEnv* env, jobject obj, jfloat distance) {
+void NATIVE_METHOD(handleShoveGesture)(JNIEnv* env, jobject obj, jfloat distance, jboolean requestRender) {
     auto* map = androidMapFromJava(env, obj);
-    map->handleShoveGesture(distance);
+    map->handleShoveGesture(distance, requestRender);
 }
 
 void NATIVE_METHOD(onUrlComplete)(JNIEnv* env, jobject obj, jlong requestHandle,
@@ -695,6 +695,21 @@ float NATIVE_METHOD(getRotation)(JNIEnv* env, jobject obj) {
 void NATIVE_METHOD(setRotation)(JNIEnv* env, jobject obj, jfloat rotation) {
     auto* map = androidMapFromJava(env, obj);
     map->setRotation((float)rotation);
+}
+
+void NATIVE_METHOD(handlePanPinchRotateFlingShove) (JNIEnv *env, jobject obj, jfloat _panStartX, jfloat _panStartY, jfloat _panEndX,
+ jfloat _panEndY,
+ jfloat _pinchPosX, jfloat _pinchPosY, jfloat _pinchValue,
+ jfloat _pinchVelocity, jfloat _rotPosX, jfloat _rotPosY,
+ jfloat _rotRadians,
+ jfloat _flingPosX, jfloat _flingPosY, jfloat _flingVelocityX, jfloat _flingVelocityY,
+ jfloat _shoveDistance) {
+    auto *map = androidMapFromJava(env, obj);
+    map->handlePanPinchRotateFlingShove(_panStartX, _panStartY, _panEndX, _panEndY,
+                              _pinchPosX, _pinchPosY, _pinchValue,
+                              _pinchVelocity, _rotPosX, _rotPosY,
+                              _rotRadians, _flingPosX, _flingPosY,
+                              _flingVelocityX, _flingVelocityY, _shoveDistance);
 }
 
 void NATIVE_METHOD(setZoom)(JNIEnv* env, jobject obj, jfloat zoom) {

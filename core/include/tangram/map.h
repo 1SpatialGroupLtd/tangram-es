@@ -421,20 +421,26 @@ public:
     void handleDoubleTapGesture(float _posX, float _posY);
 
     // Respond to a drag with the given displacement in screen coordinates (x right, y down)
-    void handlePanGesture(float _startX, float _startY, float _endX, float _endY);
+    void handlePanGesture(float _startX, float _startY, float _endX, float _endY, bool requestRender = true);
 
     // Respond to a fling from the given position with the given velocity in screen coordinates
-    void handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY);
+    void handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY, bool requestRender = true);
 
     // Respond to a pinch at the given position in screen coordinates with the given
     // incremental scale
-    void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity);
+    void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity, bool requestRender = true);
 
     // Respond to a rotation gesture with the given incremental rotation in radians
-    void handleRotateGesture(float _posX, float _posY, float _rotation);
+    void handleRotateGesture(float _posX, float _posY, float _rotation, bool requestRender = true);
 
     // Respond to a two-finger shove with the given distance in screen coordinates
-    void handleShoveGesture(float _distance);
+    void handleShoveGesture(float _distance, bool requestRender = true);
+
+    void handlePanPinchRotateFlingShove(float _panStartX, float _panStartY, float _panEndX, float _panEndY,
+                              float _pinchPosX, float _pinchPosY, float _pinchValue, float _pinchVelocity,
+                              float _rotPosX, float _rotPosY, float _rotRadians,
+                              float _flingPosX, float _flingPosY, float _flingVelocityX, float _flingVelocityY,
+                              float _shoveDistance);
 
     // Set whether the OpenGL state will be cached between subsequent frames; this improves rendering
     // efficiency, but can cause errors if your application code makes OpenGL calls (false by default)

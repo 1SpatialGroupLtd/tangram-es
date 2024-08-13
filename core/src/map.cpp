@@ -884,34 +884,58 @@ void Map::handleDoubleTapGesture(float _posX, float _posY) {
     impl->platform.requestRender();
 }
 
-void Map::handlePanGesture(float _startX, float _startY, float _endX, float _endY) {
+void Map::handlePanGesture(float _startX, float _startY, float _endX, float _endY, bool requestRender) {
     cancelCameraAnimation();
     impl->inputHandler.handlePanGesture(_startX, _startY, _endX, _endY);
-    impl->platform.requestRender();
+    if(requestRender)
+        impl->platform.requestRender();
 }
 
-void Map::handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY) {
+
+void Map::handlePanPinchRotateFlingShove(float _panStartX, float _panStartY, float _panEndX, float _panEndY,
+                               float _pinchPosX, float _pinchPosY, float _pinchValue, float _pinchVelocity,
+                               float _rotPosX, float _rotPosY, float _rotRadians,
+                               float _flingPosX, float _flingPosY, float _flingVelocityX, float _flingVelocityY,
+                               float _shoveDistance) {
+
+    cancelCameraAnimation();
+
+    impl->inputHandler.handlePanPinchRotateFlingShove(_panStartX, _panStartY, _panEndX, _panEndY,
+                                            _pinchPosX, _pinchPosY, _pinchValue,
+                                            _pinchVelocity, _rotPosX, _rotPosY,_rotRadians,
+                                            _flingPosX, _flingPosY, _flingVelocityX, _flingVelocityY,
+            _shoveDistance);
+
+    impl->platform.requestRender();
+
+
+}
+
+void Map::handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY, bool requestRender) {
     cancelCameraAnimation();
     impl->inputHandler.handleFlingGesture(_posX, _posY, _velocityX, _velocityY);
-    impl->platform.requestRender();
+    if(requestRender)
+        impl->platform.requestRender();
 }
 
-void Map::handlePinchGesture(float _posX, float _posY, float _scale, float _velocity) {
+void Map::handlePinchGesture(float _posX, float _posY, float _scale, float _velocity, bool requestRender) {
     cancelCameraAnimation();
     impl->inputHandler.handlePinchGesture(_posX, _posY, _scale, _velocity);
     impl->platform.requestRender();
 }
 
-void Map::handleRotateGesture(float _posX, float _posY, float _radians) {
+void Map::handleRotateGesture(float _posX, float _posY, float _radians, bool requestRender) {
     cancelCameraAnimation();
     impl->inputHandler.handleRotateGesture(_posX, _posY, _radians);
-    impl->platform.requestRender();
+    if(requestRender)
+        impl->platform.requestRender();
 }
 
-void Map::handleShoveGesture(float _distance) {
+void Map::handleShoveGesture(float _distance, bool requestRender) {
     cancelCameraAnimation();
     impl->inputHandler.handleShoveGesture(_distance);
-    impl->platform.requestRender();
+    if(requestRender)
+        impl->platform.requestRender();
 }
 
 void Map::setupGL() {

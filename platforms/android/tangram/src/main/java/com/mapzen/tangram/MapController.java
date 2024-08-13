@@ -36,6 +36,8 @@ public class MapController {
 
 
     public boolean handleGesture(View mapView, MotionEvent ev) {
+        if(touchInput == null)
+            return false;
         return touchInput.onTouch(mapView, ev);
     }
 
@@ -87,7 +89,7 @@ public class MapController {
         SELECTION_BUFFER,
     }
 
-    enum MapRegionChangeState {
+    public enum MapRegionChangeState {
         IDLE,
         JUMPING,
         ANIMATING,
@@ -197,6 +199,14 @@ public class MapController {
         touchInput.setSimultaneousDetectionDisabled(Gestures.SHOVE, Gestures.SCALE);
         touchInput.setSimultaneousDetectionDisabled(Gestures.SHOVE, Gestures.PAN);
         touchInput.setSimultaneousDetectionDisabled(Gestures.SCALE, Gestures.LONG_PRESS);
+    }
+
+    /**
+     * It will remove the gesture handling, you will need to control the map with your own gesture recogniser.
+     */
+    public void removeTouchInput()
+    {
+        touchInput = null;
     }
 
     /**
@@ -743,6 +753,10 @@ public class MapController {
         }
     }
 
+    public void handleFlingGesture(float posX, float posY, float velocityX, float velocityY) {
+        nativeMap.handleFlingGesture(posX, posY, velocityX, velocityY, true);
+    }
+
     /**
      * Get the {@link TouchInput} for this map.
      *
@@ -758,6 +772,61 @@ public class MapController {
      * new responder call the corresponding methods on the {@code MapController} gesture responder.
      * @return The {@code TouchInput}.
      */
+
+    public void handlePanGesture(final float startX, final float startY, final float endX, final float endY, boolean requestRender){
+        setMapRegionState(MapRegionChangeState.JUMPING);
+        nativeMap.handlePanGesture(startX, startY, endX, endY, requestRender);
+    }
+
+    public void handleRotateGesture(final float x, final float y, final float rotation, boolean requestRender) {
+        nativeMap.handleRotateGesture(x, y, rotation, requestRender);
+        setMapRegionState(MapRegionChangeState.JUMPING);
+    }
+
+    public void handlePinchGesture(final float x, final float y, final float scale, final float velocity, boolean requestRender) {
+        setMapRegionState(MapRegionChangeState.JUMPING);
+        nativeMap.handlePinchGesture(x, y, scale, velocity, requestRender);
+    }
+
+    public void handleShoveGesture(float distance, boolean requestRender) {
+        setMapRegionState(MapRegionChangeState.JUMPING);
+        nativeMap.handleShoveGesture(distance, requestRender);
+    }
+
+    public void handlePanPinchRotateFlingShove(float panStartX, float panStartY, float panEndX, float panEndY,
+                                   float pinchPosX, float pinchPosY, float pinchValue, float pinchVelocity,
+                                   float rotPosX, float rotPosY, float rotRadians,
+                                   float flingPosX, float flingPosY, float flingVelocityX, float flingVelocityY,
+                                   float shoveDistance)
+    {
+        nativeMap.handlePanPinchRotateFlingShove(panStartX, panStartY, panEndX, panEndY,
+                pinchPosX, pinchPosY, pinchValue, pinchVelocity,
+                rotPosX, rotPosY, rotRadians,
+                flingPosX, flingPosY, flingVelocityX, flingVelocityY,
+                shoveDistance);
+    }
+
+    public void handleTapGesture(final float x, final float y) {
+        nativeMap.handleTapGesture(x,y);
+        setMapRegionState(MapRegionChangeState.IDLE);
+    }
+
+    public void handleDoubleTapGesture(final float x, final float y) {
+        nativeMap.handleDoubleTapGesture(x,y);
+        setMapRegionState(MapRegionChangeState.IDLE);
+    }
+
+    public void handleGestureEnd()
+    {
+        setMapRegionState(MapRegionChangeState.IDLE);
+    }
+
+    public void handleGestureBegin()
+    {
+        setMapRegionState(MapRegionChangeState.JUMPING);
+    }
+
+
     public TouchInput getTouchInput() {
         return touchInput;
     }
@@ -769,26 +838,25 @@ public class MapController {
         return new TouchInput.PanResponder() {
             @Override
             public boolean onPanBegin() {
-                setMapRegionState(MapRegionChangeState.JUMPING);
+                handleGestureBegin();
                 return true;
             }
 
             @Override
             public boolean onPan(final float startX, final float startY, final float endX, final float endY) {
-                setMapRegionState(MapRegionChangeState.JUMPING);
-                nativeMap.handlePanGesture(startX, startY, endX, endY);
+                handlePanGesture(startX, startY, endX, endY, true);
                 return true;
             }
 
             @Override
             public boolean onPanEnd() {
-                setMapRegionState(MapRegionChangeState.IDLE);
+                handleGestureEnd();
                 return true;
             }
 
             @Override
             public boolean onFling(final float posX, final float posY, final float velocityX, final float velocityY) {
-                nativeMap.handleFlingGesture(posX, posY, velocityX, velocityY);
+                handleFlingGesture(posX, posY, velocityX, velocityY);
                 return true;
             }
 
@@ -807,20 +875,18 @@ public class MapController {
         return new TouchInput.RotateResponder() {
             @Override
             public boolean onRotateBegin() {
-                setMapRegionState(MapRegionChangeState.JUMPING);
+                handleGestureBegin();
                 return true;
             }
 
             @Override
             public boolean onRotate(final float x, final float y, final float rotation) {
-                setMapRegionState(MapRegionChangeState.JUMPING);
-                nativeMap.handleRotateGesture(x, y, rotation);
+                handleRotateGesture(x, y, rotation, true);
                 return true;
             }
-
             @Override
             public boolean onRotateEnd() {
-                setMapRegionState(MapRegionChangeState.IDLE);
+                handleGestureEnd();
                 return true;
             }
         };
@@ -833,20 +899,19 @@ public class MapController {
         return new TouchInput.ScaleResponder() {
             @Override
             public boolean onScaleBegin() {
-                setMapRegionState(MapRegionChangeState.JUMPING);
+                handleGestureBegin();
                 return true;
             }
 
             @Override
             public boolean onScale(final float x, final float y, final float scale, final float velocity) {
-                setMapRegionState(MapRegionChangeState.JUMPING);
-                nativeMap.handlePinchGesture(x, y, scale, velocity);
+                handlePinchGesture(x, y, scale, velocity, true);
                 return true;
             }
 
             @Override
             public boolean onScaleEnd() {
-                setMapRegionState(MapRegionChangeState.IDLE);
+                handleGestureEnd();
                 return true;
             }
         };
@@ -865,14 +930,13 @@ public class MapController {
 
             @Override
             public boolean onShove(final float distance) {
-                setMapRegionState(MapRegionChangeState.JUMPING);
-                nativeMap.handleShoveGesture(distance);
+                handleShoveGesture(distance, true);
                 return true;
             }
 
             @Override
             public boolean onShoveEnd() {
-                setMapRegionState(MapRegionChangeState.IDLE);
+                handleGestureEnd();
                 return true;
             }
         };
@@ -1066,8 +1130,7 @@ public class MapController {
         mapChangeListener = listener;
     }
 
-
-    void setMapRegionState(MapRegionChangeState state) {
+    public void setMapRegionState(MapRegionChangeState state) {
 
         if (mapChangeListener != null) {
             switch (currentState) {

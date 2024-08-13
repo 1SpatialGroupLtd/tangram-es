@@ -52,11 +52,16 @@ class NativeMap {
     native synchronized void setMaxZoom(float maxZoom);
     native synchronized void handleTapGesture(float posX, float posY);
     native synchronized void handleDoubleTapGesture(float posX, float posY);
-    native synchronized void handlePanGesture(float startX, float startY, float endX, float endY);
-    native synchronized void handleFlingGesture(float posX, float posY, float velocityX, float velocityY);
-    native synchronized void handlePinchGesture(float posX, float posY, float scale, float velocity);
-    native synchronized void handleRotateGesture(float posX, float posY, float rotation);
-    native synchronized void handleShoveGesture(float distance);
+    native synchronized void handlePanGesture(float startX, float startY, float endX, float endY, boolean requestRender);
+    native synchronized void handleFlingGesture(float posX, float posY, float velocityX, float velocityY, boolean requestRender);
+    native synchronized void handlePinchGesture(float posX, float posY, float scale, float velocity, boolean requestRender);
+    native synchronized void handleRotateGesture(float posX, float posY, float rotation, boolean requestRender);
+    native synchronized void handlePanPinchRotateFlingShove(float panStartX, float panStartY, float panEndX, float panEndY,
+                                        float pinchPosX, float pinchPosY, float pinchValue, float pinchVelocity,
+                                        float rotPosX, float rotPosY, float rotRadians,
+                                        float flingPosX, float flingPosY, float flingVelocityX, float flingVelocityY,
+                                        float shoveDistance);
+    native synchronized void handleShoveGesture(float distance, boolean requestRender);
     native synchronized void setPickRadius(float radius);
     native synchronized void pickFeature(float posX, float posY, int identifier);
     native synchronized void pickLabel(float posX, float posY, int identifier);

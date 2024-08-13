@@ -532,7 +532,7 @@ public class TouchInput implements OnTouchListener {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            if (isDetectionAllowed(Gestures.PAN) && panResponder != null) {
+            if (isDetectionAllowed(Gestures.SHOVE) && panResponder != null) {
                 return panResponder.onFling(e2.getX(), e2.getY(), velocityX, velocityY);
             }
             return false;

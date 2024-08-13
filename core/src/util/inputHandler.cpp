@@ -124,6 +124,32 @@ void InputHandler::handlePinchGesture(float _posX, float _posY, float _scale, fl
     }
 }
 
+void
+InputHandler::handlePanPinchRotateFlingShove(float _panStartX, float _panStartY, float _panEndX,
+                                             float _panEndY,
+                                             float _pinchPosX, float _pinchPosY,
+                                             float _pinchValue, float _pinchVelocity,
+                                             float _rotPosX, float _rotPosY, float _rotRadians,
+                                             float _flingPosX, float _flingPosY,
+                                             float _flingVelocityX, float _flingVelocityY,
+                                             float _shoveDistance) {
+
+    if(_panStartX != _panEndX || _panStartY != _panEndY)
+        handlePanGesture(_panStartX, _panStartY, _panEndX, _panEndY);
+
+    if(_flingVelocityX != 0.f || _flingVelocityY != 0.f)
+        handleFlingGesture(_flingPosX, _flingPosY, _flingVelocityX, _flingVelocityY);
+
+    if(_pinchValue != 1.f && _pinchValue != 0.f)
+        handlePinchGesture(_pinchPosX, _pinchPosY, _pinchValue, _pinchVelocity);
+
+    if(_rotRadians != 0.f)
+        handleRotateGesture(_rotPosX, _rotPosY, _rotRadians);
+
+    if(_shoveDistance != 0.f)
+        handleShoveGesture(_shoveDistance);
+
+}
 void InputHandler::handleRotateGesture(float _posX, float _posY, float _radians) {
     cancelFling();
 
@@ -134,7 +160,6 @@ void InputHandler::handleRotateGesture(float _posX, float _posY, float _radians)
     // Rotate vector by gesture rotation and apply difference as translation
     glm::vec2 translation = offset - glm::rotate(offset, _radians);
     m_view.translate(translation.x, translation.y);
-
     m_view.roll(_radians);
 }
 
@@ -143,7 +168,6 @@ void InputHandler::handleShoveGesture(float _distance) {
 
     float angle = -M_PI * _distance / m_view.getHeight();
     m_view.pitch(angle);
-
 }
 
 void InputHandler::cancelFling() {

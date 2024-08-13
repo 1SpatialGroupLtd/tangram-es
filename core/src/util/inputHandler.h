@@ -19,6 +19,12 @@ public:
     void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity);
     void handleRotateGesture(float _posX, float _posY, float _radians);
     void handleShoveGesture(float _distance);
+    void handlePanPinchRotateFlingShove(float _panStartX, float _panStartY, float _panEndX, float _panEndY,
+                              float _pinchPosX, float _pinchPosY, float _pinchValue, float _pinchVelocity,
+                              float _rotPosX, float _rotPosY, float _rotRadians,
+                              float _flingPosX, float _flingPosY, float _flingVelocityX, float _flingVelocityY,
+                              float _shoveDistance
+                              );
 
     /*
      * Returns true if the update results in any flinging from the inputHandler
