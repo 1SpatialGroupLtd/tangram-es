@@ -20,27 +20,19 @@ import java.io.InputStreamReader;
 public class MainActivity extends AppCompatActivity implements MapView.MapReadyCallback, MapController.SceneLoadListener {
     MapController map;
     MapView view;
-    RelativeLayout parent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
-        parent = findViewById(R.id.parent);
-        view = new com.mapzen.tangram.MapView(this);
 
-        parent.addView(view);
-
-        findViewById(R.id.button).setOnClickListener(v -> {
-        });
-
+        view = findViewById(R.id.mapView);
         view.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(MapController mapController) {
-        view.setCanDestroyGlContext(false);
         map = mapController;
 
         map.setSceneLoadListener(this);
