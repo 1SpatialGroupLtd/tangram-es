@@ -30,7 +30,7 @@
 	url = https://github.com/hjanetzek/alfons
 [submodule "external/harfbuzz-icu-freetype"]
 	path = core/deps/harfbuzz-icu-freetype
-	url = https://github.com/tangrams/harfbuzz-icu-freetype.git
+	url = https://github.com/1SpatialGroupLtd/harfbuzz-icu-freetype.git
 [submodule "external/SQLiteCpp"]
 	path = core/deps/SQLiteCpp
 	url = https://github.com/SRombauts/SQLiteCpp.git
