@@ -115,3 +115,11 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
   }
 }
+
+allprojects {
+  gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+      options.compilerArgs << "-Xlint:all";
+    }
+  }
+}
