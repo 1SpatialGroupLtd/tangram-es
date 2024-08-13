@@ -72,7 +72,7 @@ android {
     }
     release {
       externalNativeBuild {
-        cmake.cppFlags'-g0'
+        cmake.cppFlags'-g0 -O3'
       }
       minifyEnabled  = false
     }
@@ -82,7 +82,8 @@ android {
 }
 
 dependencies {
-  api 'com.squareup.okhttp3:okhttp:3.12.0'
+  // api 'com.squareup.okhttp3:okhttp:3.13.1'
+  api 'com.squareup.okhttp3:okhttp:3.11.0'
   implementation 'androidx.annotation:annotation:1.7.1'
 }
 
