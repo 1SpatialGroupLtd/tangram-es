@@ -220,11 +220,16 @@ void ClientDataSource::clearFeatures() {
     m_store->properties.clear();
 }
 
-uint64_t ClientDataSource::addData(const std::string& _data) {
-    uint64_t added{};
+size_t ClientDataSource::addData(const std::string& _data)
+{
+    return addData(_data.c_str(), _data.size());
+}
+
+size_t ClientDataSource::addData(const char* _data, size_t length) {
+    size_t added{};
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
-    const auto json = geojson::parse(_data);
+    const auto json = geojson::parse(_data, length);
     auto features = geojsonvt::geojson::visit(json, geojsonvt::ToFeatureCollection{});
 
     if(m_canUpdateFeatures)
@@ -452,13 +457,17 @@ uint64_t Tangram::ClientDataSource::removeFeatures(const uint64_t *idsArray, uin
     return updated;
 }
 
-uint64_t Tangram::ClientDataSource::appendOrUpdateFeatures(const std::string &_data) {
+size_t Tangram::ClientDataSource::appendOrUpdateFeatures(const std::string &_data) {
+    return appendOrUpdateFeatures(_data.c_str(), _data.size());
+}
+
+size_t Tangram::ClientDataSource::appendOrUpdateFeatures(const char* _data, size_t length) {
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
     if (!m_canUpdateFeatures)
         return 0;
 
-    const auto json = geojson::parse(_data);
+    const auto json = geojson::parse(_data, length);
     auto features = geojsonvt::geojson::visit(json, geojsonvt::ToFeatureCollection{});
 
     uint64_t updated = 0;

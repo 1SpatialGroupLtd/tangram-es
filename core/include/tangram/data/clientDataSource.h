@@ -47,6 +47,7 @@ public:
 
     // Add geometry from a GeoJSON string
     uint64_t addData(const std::string& _data);
+    size_t addData(const char* _data, size_t length);
 
     void addPointFeature(Properties&& properties, LngLat coordinates);
 
@@ -71,6 +72,7 @@ public:
     uint64_t removeFeatures(const uint64_t *ids, uint64_t length);
     uint64_t appendOrUpdateFeatures(const std::string& _data);
 
+    size_t appendOrUpdateFeatures(const char* _data, size_t length);
 protected:
 
     std::shared_ptr<TileData> parse(const TileTask& _task) const override;
