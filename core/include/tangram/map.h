@@ -471,6 +471,9 @@ public:
     // Send a signal to Tangram that the platform received a memory warning
     void onMemoryWarning();
 
+    // Returns the current zoom velocity of the map.
+    float getZoomVelocity() const;
+
     // Sets an opaque default background color used as default color when a scene is being loaded
     // r, g, b must be between 0.0 and 1.0
     void setDefaultBackgroundColor(float r, float g, float b);

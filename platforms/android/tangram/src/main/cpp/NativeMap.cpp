@@ -687,6 +687,11 @@ float NATIVE_METHOD(getZoom)(JNIEnv* env, jobject obj) {
     return map->getRotation();
 }
 
+float NATIVE_METHOD(getZoomVelocity)(JNIEnv* env, jobject obj) {
+    auto* map = androidMapFromJava(env, obj);
+    return map->getZoomVelocity();
+}
+
 float NATIVE_METHOD(getRotation)(JNIEnv* env, jobject obj) {
     auto* map = androidMapFromJava(env, obj);
     return map->getRotation();

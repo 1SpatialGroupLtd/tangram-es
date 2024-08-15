@@ -34,7 +34,7 @@ public:
     void cancelFling();
 
     void setView(View& _view) { m_view = _view; }
-
+    float getZoomVelocity() const { return m_velocityZoom; }
 private:
 
     void setVelocity(float _zoom, glm::vec2 _pan);

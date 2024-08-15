@@ -974,6 +974,8 @@ void Map::runAsyncTask(std::function<void()> _task) {
     }
 }
 
+float Map::getZoomVelocity() const { return impl->inputHandler.getZoomVelocity(); }
+
 void Map::onMemoryWarning() {
 
     impl->scene->tileManager()->clearTileSets(true);

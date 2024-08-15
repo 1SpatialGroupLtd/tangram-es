@@ -106,6 +106,7 @@ class NativeMap {
     native synchronized boolean layerExists(String layerName);
     native synchronized float pixelsPerMeter();
     native synchronized float getRotation();
+    native synchronized float getZoomVelocity();
     native synchronized void setRotation(float rotation);
     native synchronized float getZoom();
     native synchronized void setZoom(float zoom);
