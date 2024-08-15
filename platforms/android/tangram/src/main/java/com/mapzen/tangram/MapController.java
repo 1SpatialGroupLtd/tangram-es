@@ -591,6 +591,8 @@ public class MapController {
         return nativeMap.getMinZoom();
     }
 
+    public float getZoomVelocity() { return nativeMap.getZoomVelocity(); }
+
     /**
      * Set the minimum zoom level of the map view.
      *
