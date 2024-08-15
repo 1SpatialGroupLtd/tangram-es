@@ -70,9 +70,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)setFeatures:(NSArray<TGMapFeature *> *)features;
 
-- (size_t)removeGeoJsonById:(nonnull const size_t*) ids count:(long)count generateTiles:(BOOL)generateTiles;
+- (size_t)removeGeoJsonById:(nonnull const size_t*) ids length:(size_t)length generateTiles:(BOOL)generateTiles;
 
-- (void)generateTilesIfNeeded: (long)count generateTiles: (BOOL)generateTiles;
+- (void)generateTilesIfNeeded: (size_t)count generateTiles: (BOOL)generateTiles;
 /**
  Sets the contents of this map data to the features defined in a
  <a href="http://geojson.org/geojson-spec.html">GeoJSON</a> string.

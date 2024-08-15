@@ -94,9 +94,9 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     dataSource->generateTiles();
 }
 
-- (void)generateTilesIfNeeded: (long)count generateTiles: (BOOL)generateTiles
+- (void)generateTilesIfNeeded: (size_t)length generateTiles: (BOOL)generateTiles
 {
-    if(count > 0 && generateTiles)
+    if(length > 0 && generateTiles)
     {
        [self.mapView clearTileCache:dataSource->id()];
        dataSource->generateTiles();
@@ -104,9 +104,9 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     }
 }
 
-- (size_t)removeGeoJsonById:(const size_t*)ids count:(long)count  generateTiles:(BOOL)generateTiles
+- (size_t)removeGeoJsonById:(const size_t*)ids length:(size_t)length  generateTiles:(BOOL)generateTiles
 {
-    long number = dataSource->removeFeatures(ids, count);
+    size_t number = dataSource->removeFeatures(ids, length);
     [self generateTilesIfNeeded:number generateTiles:generateTiles];
     
     return number;
