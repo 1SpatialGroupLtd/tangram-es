@@ -183,7 +183,7 @@ void ClientDataSource::generateTiles() {
             geometry::point<double> centroid;
             const auto& properties = m_store->properties[feat.id.get<uint64_t>()];
             if (geometry::geometry<double>::visit(feat.geometry, add_centroid{ centroid })) {
-                uint64_t id = m_store->features.size();
+                auto id = m_store->features.size();
                 m_store->features.emplace_back(centroid, id);
                 m_store->properties.push_back(properties);
                 auto& props = m_store->properties.back();
@@ -278,7 +278,7 @@ void ClientDataSource::addPointFeature(Properties&& properties, LngLat coordinat
 
     geometry::point<double> geom {coordinates.longitude, coordinates.latitude};
 
-    uint64_t id = m_store->features.size();
+    size_t id = m_store->features.size();
     m_store->features.emplace_back(geom, id);
     m_store->properties.emplace_back(properties);
 }
@@ -287,7 +287,7 @@ void ClientDataSource::addPolylineFeature(Properties&& properties, PolylineBuild
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
-    uint64_t id = m_store->features.size();
+    auto id = m_store->features.size();
     auto geom = std::move(polyline.data);
     m_store->features.emplace_back(*geom, id);
     m_store->properties.emplace_back(properties);
@@ -297,7 +297,7 @@ void ClientDataSource::addPolygonFeature(Properties&& properties, PolygonBuilder
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
-    uint64_t id = m_store->features.size();
+    auto id = m_store->features.size();
     auto geom = std::move(polygon.data);
     m_store->features.emplace_back(*geom, id);
     m_store->properties.emplace_back(properties);
@@ -416,14 +416,14 @@ static std::vector<uint64_t> filterIds(mapbox::geojson::feature_collection& feat
     return ids;
 }
 
-uint64_t Tangram::ClientDataSource::removeFeatures(const uint64_t *idsArray, uint64_t length) {
+size_t Tangram::ClientDataSource::removeFeatures(const size_t *idsArray, size_t length) {
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
     if (!idsArray || !m_canUpdateFeatures || m_store->features.empty() || length == 0)
         return 0;
 
-    uint64_t updated = 0;
-    std::vector<uint64_t> ids{idsArray, idsArray + length};
+    size_t updated = 0;
+    std::vector<size_t> ids{idsArray, idsArray + length};
     size_t firstRemovedIndex = 0;
     for (int store_index = 0; store_index < m_store->features.size(); store_index++) {
         for (auto update_index = 0; update_index < ids.size(); update_index++) {
@@ -470,7 +470,7 @@ size_t Tangram::ClientDataSource::appendOrUpdateFeatures(const char* _data, size
     const auto json = geojson::parse(_data, length);
     auto features = geojsonvt::geojson::visit(json, geojsonvt::ToFeatureCollection{});
 
-    uint64_t updated = 0;
+    size_t updated = 0;
 
     auto ids = filterIds(features);
     if(ids.empty()) return 0;

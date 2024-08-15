@@ -46,7 +46,7 @@ public:
     const char* mimeType() const override { return "application/geo+json"; };
 
     // Add geometry from a GeoJSON string
-    uint64_t addData(const std::string& _data);
+    size_t addData(const std::string& _data);
     size_t addData(const char* _data, size_t length);
 
     void addPointFeature(Properties&& properties, LngLat coordinates);
@@ -69,9 +69,8 @@ public:
     bool canUpdateFeatures() const { return m_canUpdateFeatures;}
     void setCanUpdateFeatures(bool enable)  { m_canUpdateFeatures = enable;}
 
-    uint64_t removeFeatures(const uint64_t *ids, uint64_t length);
-    uint64_t appendOrUpdateFeatures(const std::string& _data);
-
+    size_t removeFeatures(const size_t *ids, size_t length);
+    size_t appendOrUpdateFeatures(const std::string& _data);
     size_t appendOrUpdateFeatures(const char* _data, size_t length);
 protected:
 
