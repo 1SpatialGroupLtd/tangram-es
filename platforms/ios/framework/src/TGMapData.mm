@@ -94,6 +94,24 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     dataSource->generateTiles();
 }
 
+- (void)generateTilesIfNeeded: (long)count generateTiles: (BOOL)generateTiles
+{
+    if(count > 0 && generateTiles)
+    {
+       [self.mapView clearTileCache:dataSource->id()];
+       dataSource->generateTiles();
+       [self.mapView requestRender];
+    }
+}
+
+- (size_t)removeGeoJsonById:(const size_t*)ids count:(long)count  generateTiles:(BOOL)generateTiles
+{
+    long number = dataSource->removeFeatures(ids, count);
+    [self generateTilesIfNeeded:number generateTiles:generateTiles];
+    
+    return number;
+}
+
 - (void)setGeoJson:(NSString *)data
 {
     if (!self.map) {
@@ -142,12 +160,12 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
     dataSource->setVisible(visible);
 }
 
-- (void) setGeoJsonFromBytes: (nonnull Byte[]) geoJsonBytes length: (int)length
+- (size_t) setGeoJsonFromBytes: (const char*) geoJsonBytes length: (size_t)length
 {
-    NSData *geoJsonBytesHandler = [NSData dataWithBytesNoCopy:geoJsonBytes length:length freeWhenDone:YES];
-    NSString *geoJsonString = [[NSString alloc] initWithData:geoJsonBytesHandler encoding:NSUTF8StringEncoding];
-    
-    [self setGeoJson: geoJsonString];
+    dataSource->clearFeatures();
+    [self.map clearTileCache: dataSource->id()];
+    auto count = dataSource->addData(geoJsonBytes, length);
+    dataSource->generateTiles();
 }
 
 @end

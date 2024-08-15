@@ -626,8 +626,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     self.map->setPickRadius(logicalPixels);
 }
 
-- (void)pickFeatureAt:(CGPoint)viewPosition
-           identifier:(int)identifier
+- (void)pickFeatureAt:(CGPoint)viewPosition identifier:(int)identifier
 {
     if (!self.map) { return; }
 
@@ -1367,6 +1366,12 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     std::string newUrl = std::string([url UTF8String]);
     
     return _map->setTileSourceUrl(source, newUrl);
+}
+
+- (NSString*) getTileSourceUrl: (NSString*)sourceName {
+    std::string source = std::string([sourceName UTF8String]);
+    std::string url = _map->getTileSourceUrl(source);
+    return [NSString stringWithUTF8String:url.c_str()];
 }
 
 - (void) clearTileCache: (int)sourceId

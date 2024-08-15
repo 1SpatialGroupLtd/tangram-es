@@ -577,6 +577,7 @@ TG_EXPORT
 - (bool) layerExists: (NSString*)layerName;
 - (void) setLayer: (NSString*)layerName yaml:(NSString*)yaml;
 - (bool) setTileSourceUrl: (NSString*)sourceName url:(NSString*)url;
+- (NSString*) getTileSourceUrl: (NSString*)sourceName;
 - (void) clearTileCache: (int)sourceId;
 
 @end // interface TGMapView

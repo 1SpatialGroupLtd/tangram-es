@@ -70,6 +70,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)setFeatures:(NSArray<TGMapFeature *> *)features;
 
+- (size_t)removeGeoJsonById:(nonnull const size_t*) ids count:(long)count generateTiles:(BOOL)generateTiles;
+
+- (void)generateTilesIfNeeded: (long)count generateTiles: (BOOL)generateTiles;
 /**
  Sets the contents of this map data to the features defined in a
  <a href="http://geojson.org/geojson-spec.html">GeoJSON</a> string.
@@ -85,7 +88,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)clear;
 
-- (void) setGeoJsonFromBytes: (nonnull Byte[]) geoJsonBytes length: (int)length;
+- (size_t) setGeoJsonFromBytes: (nonnull const char*) geoJsonBytes length: (size_t)length;
 /**
  Permanently removes this map data from the map view.
 
@@ -94,7 +97,7 @@ NS_ASSUME_NONNULL_BEGIN
  @return `YES` if removal was successful.
  */
 - (BOOL)remove;
-
+                              
 /// The name of the data source.
 @property (readonly, nonatomic) NSString* name;
 
