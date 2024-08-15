@@ -579,8 +579,13 @@ void NATIVE_METHOD(addClientDataGeoJson)(JNIEnv* env, jobject obj, jlong javaSou
 
 void NATIVE_METHOD(addClientDataGeoJsonFromBytes)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jbyteArray javaByteArray) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
-    auto data = JniHelpers::stringFromJavaByteArray(env, javaByteArray);
-    source->addData(data);
+    if (javaByteArray == nullptr) return;
+    jsize num_bytes = env->GetArrayLength(javaByteArray);
+    if(num_bytes == 0) return;
+
+    jbyte* elements = env->GetByteArrayElements(javaByteArray, nullptr);
+    source->addData(reinterpret_cast<char*>(elements), static_cast<size_t>(num_bytes));
+    env->ReleaseByteArrayElements(javaByteArray, elements, 0);
 }
 
 void NATIVE_METHOD(generateClientDataTiles)(JNIEnv* env, jobject obj, jlong javaSourcePtr) {
@@ -678,8 +683,14 @@ long NATIVE_METHOD(removeClientDataById)(JNIEnv* env, jobject obj, jlong javaSou
 
 long NATIVE_METHOD(appendOrUpdateClientDataFromBytes)(JNIEnv* env, jobject obj, jlong javaSourcePtr, jbyteArray javaByteArray) {
     auto* source = reinterpret_cast<ClientDataSource*>(javaSourcePtr);
-    auto data = JniHelpers::stringFromJavaByteArray(env, javaByteArray);
-    return (long)source->appendOrUpdateFeatures(data);
+
+    if (javaByteArray == nullptr) return 0;
+    jsize num_bytes = env->GetArrayLength(javaByteArray);
+    if(num_bytes == 0) return 0;
+    jbyte* elements = env->GetByteArrayElements(javaByteArray, nullptr);
+    auto result = source->appendOrUpdateFeatures(reinterpret_cast<char*>(elements), static_cast<size_t>(num_bytes));
+    env->ReleaseByteArrayElements(javaByteArray, elements, 0);
+    return result;
 }
 
 float NATIVE_METHOD(getZoom)(JNIEnv* env, jobject obj) {
