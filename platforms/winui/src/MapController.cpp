@@ -156,6 +156,17 @@ void MapController::HandleTapGesture(float x, float y) {
     m_map->handleTapGesture(x, y);
 }
 
+void MapController::HandlePanPinchRotateFlingShove(float panStartX, float panStartY, float panEndX, float panEndY,
+                                                   float pinchPosX, float pinchPosY, float pinchValue,
+                                                   float pinchVelocity, float rotPosX, float rotPosY, float rotRadians,
+                                                   float flingPosX, float flingPosY, float flingVelocityX,
+                                                   float flingVelocityY, float shoveDistance) {
+
+    m_map->handlePanPinchRotateFlingShove(panStartX, panStartY, panEndX, panEndY, pinchPosX, pinchPosY, pinchValue,
+                                          pinchVelocity, rotPosX, rotPosY, rotRadians, flingPosX, flingPosY,
+                                          flingVelocityX, flingVelocityY, shoveDistance);
+}
+
 void MapController::CaptureFrame(EventHandler<SoftwareBitmap> callback) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
@@ -565,6 +576,13 @@ float MapController::GetRotationAngle() {
     if (IsShuttingDown()) return 0;
 
     return m_map->getRotation();
+}
+
+float MapController::GetZoomVelocity() {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return 0.f;
+
+    return m_map->getZoomVelocity();
 }
 
 void MapController::SetMarkerPickHandler(EventHandler<PickResult> const& handler) {
