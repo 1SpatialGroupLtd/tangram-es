@@ -6,7 +6,7 @@
 namespace winrt::TangramWinUI::implementation {
 uint64_t MapData::AppendOrUpdateGeoJson(array_view<uint8_t const>& value, bool generateTiles) {
     if (value.size() == 0 || IsInvalid()) return 0;
-    auto result = m_source->appendOrUpdateFeatures(std::string(reinterpret_cast<const char*>(value.begin()), value.size()));
+    auto result = m_source->appendOrUpdateFeatures(reinterpret_cast<const char*>(value.begin()), value.size());
     if (generateTiles) GenerateTiles();
     return result;
 }
@@ -60,7 +60,7 @@ void MapData::SetGeoJson(const hstring& geoJson) {
 void MapData::SetGeoJsonFromBytes(array_view<uint8_t const>& value) {
     if (IsInvalid()) return;
     m_source->clearFeatures();
-    m_source->addData(std::string(reinterpret_cast<const char*>(value.begin()), value.size()));
+    m_source->addData(reinterpret_cast<const char*>(value.begin()), value.size());
     GenerateTiles();
 }
 
