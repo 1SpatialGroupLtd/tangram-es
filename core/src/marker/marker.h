@@ -127,8 +127,11 @@ public:
     uint32_t selectionColor() const;
 
     static bool compareByDrawOrder(const std::unique_ptr<Marker>& lhs, const std::unique_ptr<Marker>& rhs);
-
-protected:
+    
+    void ignoreMarkerDraw() { 
+        if(m_builtZoomLevel == -1)
+            m_builtZoomLevel = -2;
+    }
 
     std::unique_ptr<Feature> m_feature;
     std::unique_ptr<StyledMesh> m_mesh;

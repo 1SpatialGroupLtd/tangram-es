@@ -271,10 +271,11 @@ bool MarkerManager::update(const View& _view, float _dt) {
         int builtZoom = marker->builtZoomLevel();
 
         if (m_zoom != builtZoom || !marker->mesh()) {
-            if (builtZoom < 0) { buildStyling(*marker); }
-
-            buildMesh(*marker, m_zoom);
-            rebuilt = true;
+            if (builtZoom != -2) {
+                if (builtZoom < 0) { buildStyling(*marker); }
+                buildMesh(*marker, m_zoom);
+                rebuilt = true;
+            }
         }
 
         marker->update(_dt, _view);
@@ -432,7 +433,15 @@ bool MarkerManager::buildMesh(Marker& marker, int zoom) {
         rule->selectionColor = 0;
     }
 
-    if (!styler->addFeature(*feature, *rule)) { return false; }
+    if (!styler->addFeature(*feature, *rule)) { 
+        // when zoom level changes to -1 and this check ends up here, it stucks here forever animating state for markers as setMesh()
+        // below should update builtZoomLevel to the actual value
+        // so work around the issue
+        if (marker.builtZoomLevel() == -1)
+            marker.ignoreMarkerDraw();
+
+        return false;
+    }
 
     marker.setSelectionColor(selectionColor);
     marker.setMesh(styler->style().getID(), zoom, styler->build());
