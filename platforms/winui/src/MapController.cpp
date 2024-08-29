@@ -571,6 +571,13 @@ float MapController::GetPixelsPerMeter() {
     return m_map->pixelsPerMeter();
 }
 
+void MapController::SetRotationAngle(float angle) {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return;
+
+    return m_map->setRotation(angle);
+}
+
 float MapController::GetRotationAngle() {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return 0;

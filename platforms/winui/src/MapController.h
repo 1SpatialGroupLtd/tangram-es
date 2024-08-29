@@ -69,6 +69,7 @@ struct MapController : public MapControllerT<MapController> {
                                    float pinchPosY, float pinchValue, float pinchVelocity, float rotPosX,
                                         float rotPosY, float rotRadians, float flingPosX, float flingPosY,
                                       float flingVelocityX, float flingVelocityY, float shoveDistance);
+
     void CaptureFrame(EventHandler<SoftwareBitmap> callback);
     IAsyncAction Shutdown();
     void SetPickRadius(float radius);
@@ -97,6 +98,7 @@ struct MapController : public MapControllerT<MapController> {
     void SetMaxZoomLevel(float maxZoomLevel);
     float GetPixelsPerMeter();
     float GetRotationAngle();
+    void SetRotationAngle(float angle);
     float GetZoomVelocity();
 
     void SetMarkerPickHandler(EventHandler<PickResult> const& handler);

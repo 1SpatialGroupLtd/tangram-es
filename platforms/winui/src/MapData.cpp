@@ -76,4 +76,10 @@ void MapData::SetController(MapController* controller) {
 
 void MapData::SetSource(Tangram::ClientDataSource* source) { m_source = std::move(source); }
 
+void MapData::Remove() {
+    if (IsInvalid()) return;
+    m_controller->RemoveDataLayer(*this);
+    Invalidate();
+}
+
 } // namespace winrt::TangramWinUI::implementation

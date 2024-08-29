@@ -29,6 +29,7 @@ namespace winrt::TangramWinUI::implementation {
     void SetController(MapController* controller);
     void SetSource(Tangram::ClientDataSource* source);
     void GenerateTiles();
+    void Remove();    
     void Invalidate() {
         m_controller = nullptr;
         m_source = nullptr;
@@ -37,7 +38,6 @@ namespace winrt::TangramWinUI::implementation {
 private:
     bool IsInvalid() const { return !m_controller; }
 
-private:
     hstring m_name;
     uint32_t m_id{};
 

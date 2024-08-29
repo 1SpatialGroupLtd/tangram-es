@@ -16,6 +16,7 @@ runtimeclass MapData
     Boolean CanUpdateFeatures{get;set;};
     void Clear();
     void GenerateTiles();
+    void Remove();
 }
 
 }
