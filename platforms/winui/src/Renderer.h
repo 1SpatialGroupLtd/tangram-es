@@ -33,7 +33,7 @@ private:
     EGLContext m_context{};
     std::chrono::time_point<std::chrono::steady_clock> m_lastTime{};
     CaptureCallback m_captureFrameCallback;
-    bool m_isPrevFrameCompleted{};
+    bool m_isPrevMapViewComplete{};
     bool m_isPrevCameraEasing{};
     std::mutex m_mutex{};
  };

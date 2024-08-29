@@ -120,6 +120,7 @@ void Renderer::Render() {
 
     auto& map = m_controller->GetMap();
     Tangram::MapState state;
+    bool willCaptureFrame;
 
     {
         std::scoped_lock mapLock(m_controller->MapMutex());
@@ -127,17 +128,21 @@ void Renderer::Render() {
         auto elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
         m_lastTime = now;
         state = map.update(elapsed_seconds);
-    }
+        willCaptureFrame = m_captureFrameCallback && state.viewComplete();
 
-    {
         // only one thread can access the graphics layer exclusively, limitation we need to live with
         std::scoped_lock globalLock(s_globalRenderMutex);
         map.render();
+
+        // if we are not capturing, just swap the buffers right now under this lock
+        if (!willCaptureFrame)
+            eglSwapBuffers(m_display, m_surface);
     }
 
-    bool mapViewComplete = state.viewComplete();
-    bool isCameraEasing = state.viewChanging();
-    bool isAnimating = state.isAnimating();
+    const bool viewComplete = state.viewComplete();
+    const bool isCameraEasing = state.viewChanging();
+    const bool isAnimating = state.isAnimating();
+    const bool mapViewBecameCompleted = viewComplete && !m_isPrevMapViewComplete;
 
     if (state.isAnimating()) {
         m_controller->RequestRender();
@@ -152,16 +157,12 @@ void Renderer::Render() {
     }
 
     if (isAnimating) { m_controller->RequestRender(); }
-
-    const bool viewCompleted = mapViewComplete && !m_isPrevFrameCompleted;
-
-    if (viewCompleted) {
+    
+    if (mapViewBecameCompleted) {
         m_controller->RaiseViewCompleteEvent();
     }
 
-    m_isPrevFrameCompleted = viewCompleted;
-
-    if (m_captureFrameCallback && state.viewComplete() && !m_isPrevFrameCompleted) {
+    if (willCaptureFrame) {
         using winrt::Windows::Foundation::MemoryBuffer;
         using winrt::Windows::Storage::Streams::Buffer;
         auto width = map.getViewportWidth();
@@ -173,21 +174,25 @@ void Renderer::Render() {
 
         map.captureSnapshot(reinterpret_cast<unsigned*>(buffer.data()));
 
-        m_controller->ScheduleOnWorkThread(
-            [width, height, buffer, callback = std::move(m_captureFrameCallback)] {
-                // the captured data is up-side down as it emulates openg that is being upside down,
-                // but d3d is upside, so lets fix it
-                ReverseImageDataUpsideDown((uint32_t*)buffer.data(), width, height);
+        // only one thread can access the graphics layer exclusively, limitation we need to live with
+        std::scoped_lock globalLock(s_globalRenderMutex);
+        // now swap the buffer as we captured the buffer
+        eglSwapBuffers(m_display, m_surface);
 
-                auto bitmap = SoftwareBitmap(winrt::Windows::Graphics::Imaging::BitmapPixelFormat::Rgba8, width,
-                                             height);
-                bitmap.CopyFromBuffer(buffer);
+        m_controller->ScheduleOnWorkThread([width, height, buffer, callback = std::move(m_captureFrameCallback)] {
+            // the captured data is up-side down as it emulates openg that is being upside down,
+            // but d3d is upside, so lets fix it
+            ReverseImageDataUpsideDown((uint32_t*)buffer.data(), width, height);
 
-                callback(bitmap);
-            });
+            auto bitmap = SoftwareBitmap(winrt::Windows::Graphics::Imaging::BitmapPixelFormat::Rgba8, width, height);
+            bitmap.CopyFromBuffer(buffer);
+
+            callback(bitmap);
+        });
     }
 
-    eglSwapBuffers(m_display, m_surface);   
+    m_isPrevCameraEasing = isCameraEasing;
+    m_isPrevMapViewComplete = viewComplete;
 }
 
 } // namespace TangramWinUI
