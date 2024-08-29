@@ -168,7 +168,7 @@ void Renderer::Render() {
         auto height = map.getViewportHeight();
 
         // create sufficient size buffer and make sure
-        auto buffer = Buffer(width * height * sizeof(uint64_t));
+        auto buffer = Buffer(width * height * sizeof(uint32_t));
         buffer.Length(buffer.Capacity());
 
         map.captureSnapshot(reinterpret_cast<unsigned*>(buffer.data()));
