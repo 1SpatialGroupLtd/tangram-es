@@ -21,9 +21,9 @@ MapController::~MapController() {
 }
 
 MapController::MapController()
-    : m_renderDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
-      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
-      m_fileDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread())
+    : m_fileDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
+      m_renderDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
+      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread())
 {
     m_tileSources = multi_threaded_map<hstring, RuntimeMapData>();
     m_markers = multi_threaded_map<uint32_t, RuntimeMarker>();
@@ -366,61 +366,7 @@ void MapController::SetMapRegionState(MapRegionChangeState state) {
         } else if (state == MapRegionChangeState::ANIMATING && m_onRegionIsChanging) {
             ScheduleOnWorkThread([this] { m_onRegionIsChanging(m_panel, 0); });
         }
-
-        return;
     }
-}
-
-void MapController::MarkerSetVisible(MarkerID id, bool visible) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    m_map->markerSetVisible(id, visible);
-}
-
-void MapController::MarkerSetDrawOrder(MarkerID id, int drawOrder) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-    m_map->markerSetDrawOrder(id, drawOrder);
-}
-
-void MapController::MarkerSetPointEased(MarkerID id, Tangram::LngLat lngLat, int duration, Tangram::EaseType ease) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    m_map->markerSetPointEased(id, lngLat, duration / 1000.f, ease);
-}
-
-void MapController::MarkerSetPoint(MarkerID id, Tangram::LngLat lngLat) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    m_map->markerSetPoint(id, lngLat);
-}
-
-void MapController::MarkerSetBitmap(MarkerID id, int width, int height, uint32_t* data) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    m_map->markerSetBitmap(id, width, height, data);
-}
-
-void MapController::MarkerSetStylingFromString(MarkerID id, const char* styling) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
-    m_map->markerSetStylingFromString(id, styling);
-}
-
-void MapController::LayerGenerateTiles(NativeMapData& data) {
-    {
-        std::scoped_lock mapLock(m_mapMutex);
-        if (IsShuttingDown()) return;
-
-        m_map->clearTileCache(data.Id());
-    }
-    data.Source()->generateTiles();
-    RequestRender();
 }
 
 void MapController::SetMapRegionStateIdle() {
@@ -435,12 +381,12 @@ void MapController::RaiseViewCompleteEvent() {
     if (m_onViewComplete) ScheduleOnWorkThread([this] { m_onViewComplete(m_panel, 0); });
 }
 
-LngLat MapController::ScreenPositionToLngLat(double lng, double lat) {
+LngLat MapController::ScreenPositionToLngLat(double x, double y) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return nullptr;
 
     double olng, olat;
-    if (m_map->screenPositionToLngLat(lng, lat, &olng, &olat)) { return LngLat(olng, olat); }
+    if (m_map->screenPositionToLngLat(x, y, &olng, &olat)) { return LngLat(olng, olat); }
 
     return nullptr;
 }
@@ -498,14 +444,16 @@ RuntimeMapData MapController::AddDataLayer(const hstring& layerName) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return nullptr;
 
-    if (m_tileSources.HasKey(layerName)) { return m_tileSources.Lookup(layerName); }
+    if (m_tileSources.HasKey(layerName)) {
+        return m_tileSources.Lookup(layerName);
+    }
+
     auto source = std::make_shared<Tangram::ClientDataSource>(m_map->getPlatform(), to_string(layerName), "");
 
     auto mapData = RuntimeMapData();
     auto native = winrt::get_self<NativeMapData>(mapData);
-    native->Name(layerName);
-    native->SetSource(source.get());
-    native->SetController(this);
+    native->Init(source.get(), this);
+  
     (void)m_tileSources.Insert(layerName, mapData);
 
     m_map->addTileSource(source);
@@ -513,17 +461,12 @@ RuntimeMapData MapController::AddDataLayer(const hstring& layerName) {
 }
 
 void MapController::RemoveDataLayer(const RuntimeMapData& mapData) {
-    std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-
+    // at this point the map controller is locked by MapData !
     if (!m_tileSources.HasKey(mapData.Name())) return;
     m_tileSources.Remove(mapData.Name());
 
     const auto nativeMapData = winrt::get_self<NativeMapData>(mapData);
-
     if (auto nativeSource = nativeMapData->Source()) { m_map->removeTileSource(*nativeSource); }
-
-    nativeMapData->Invalidate();
 }
 
 void MapController::RemoveMarker(const RuntimeMarker& marker) {
@@ -542,8 +485,8 @@ TangramWinUI::Marker MapController::AddMarker() {
     auto marker = RuntimeMarker();
     auto nativeMarker = winrt::get_self<NativeMarker>(marker);
     auto id = m_map->markerAdd();
-    nativeMarker->Id(id);
-    nativeMarker->SetController(this);
+    nativeMarker->Init(id, this);
+
     (void)m_markers.Insert(id, marker);
     return marker;
 }

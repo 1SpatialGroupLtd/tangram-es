@@ -21,26 +21,30 @@ namespace winrt::TangramWinUI::implementation {
     void Clear();
     void SetGeoJson(const hstring& geoJson);
     void SetGeoJsonFromBytes(array_view<uint8_t const>& value);
-    uint32_t Id() const;
-    void Id(uint32_t id);
+    uint32_t Id() const { return m_id; }
+
+public:
+    /* internal usage only*/
+
     hstring Name() { return m_name; }
-    void Name(const hstring& name) { m_name = name; }
     Tangram::ClientDataSource* Source();
-    void SetController(MapController* controller);
-    void SetSource(Tangram::ClientDataSource* source);
+    void Remove();
     void GenerateTiles();
-    void Remove();    
+
+    void Init(Tangram::ClientDataSource* source, MapController* controller);
+
     void Invalidate() {
         m_controller = nullptr;
         m_source = nullptr;
+        m_id = 0;
     }
     
 private:
-    bool IsInvalid() const { return !m_controller; }
+    void GenerateTilesLockFree();
+    bool IsInvalid() const;
 
     hstring m_name;
     uint32_t m_id{};
-
     MapController* m_controller{};
     Tangram::ClientDataSource* m_source{};
 };

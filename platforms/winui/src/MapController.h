@@ -34,7 +34,6 @@ using winrt::Windows::Foundation::IAsyncAction;
 using winrt::Microsoft::UI::Dispatching::DispatcherQueuePriority;
 using winrt::Microsoft::UI::Dispatching::DispatcherQueue;
 
-
 namespace winrt::TangramWinUI::implementation {
 struct MapController : public MapControllerT<MapController> {
 
@@ -94,7 +93,6 @@ struct MapController : public MapControllerT<MapController> {
     void RemoveMarker(const RuntimeMarker& marker);
     RuntimeMarker AddMarker();
     void RemoveAllMarkers();
-
     void SetMaxZoomLevel(float maxZoomLevel);
     float GetPixelsPerMeter();
     float GetRotationAngle();
@@ -105,26 +103,14 @@ struct MapController : public MapControllerT<MapController> {
     void SetFeaturePickHandler(EventHandler<PickResult> const& handler);
     void SetLabelPickHandler(EventHandler<PickResult> const& handler);
     void SetMapRegionStateIdle();
-    volatile bool IsShuttingDown() const { return m_shuttingDown; }
-
-    std::mutex& MapMutex() { return m_mapMutex;  }
-
-    /* Methods only for internal use */
 
 public:
+    volatile bool IsShuttingDown() const { return m_shuttingDown; }
+    std::mutex& Mutex() { return m_mapMutex;  }
     Tangram::Map& GetMap() const { return *m_map; }
     void RaiseViewCompleteEvent();
     void SetMapRegionState(MapRegionChangeState state);
     
-    void MarkerSetVisible(MarkerID, bool visible);
-    void MarkerSetDrawOrder(MarkerID, int drawOrder);
-    void MarkerSetPointEased(MarkerID, Tangram::LngLat, int duration, Tangram::EaseType);
-    void MarkerSetPoint(MarkerID, Tangram::LngLat);
-    void MarkerSetBitmap(MarkerID, int width, int height, uint32_t* data);
-    void MarkerSetStylingFromString(MarkerID, const char* styling);
-
-    void LayerGenerateTiles(NativeMapData& data);
-
     template <typename Action> void ScheduleOnRenderThread(Action action) {
         struct AtomicDecrementer {
             std::atomic<int>& counter;
@@ -145,7 +131,6 @@ public:
                     if (IsShuttingDown()) return;
                     action();
                 }))) {
-
             m_queuedRenderRequests.fetch_add(1);
         }
     }

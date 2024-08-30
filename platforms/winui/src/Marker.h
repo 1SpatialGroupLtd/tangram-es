@@ -22,10 +22,9 @@ struct Marker : public MarkerT<Marker>
     void UserData(IInspectable userData);
     IInspectable UserData() const;
     uint32_t Id() const;
-    void Id(uint32_t id);
-
-    void SetController(MapController* controller);
+    void Init(uint32_t id, MapController* controller);
     void Invalidate();
+    bool IsInvalid() const;
 
 private:
     IInspectable m_userData;

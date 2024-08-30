@@ -115,6 +115,8 @@ void Renderer::CaptureFrame(CaptureCallback callback) {
 }
 
 void Renderer::Render() {
+    LOG("MARKER: Tangram: Render method");
+
     // should we just spin to not yield this thread?
     std::scoped_lock lock(m_mutex);
 
@@ -123,15 +125,17 @@ void Renderer::Render() {
     bool willCaptureFrame;
 
     {
-        std::scoped_lock mapLock(m_controller->MapMutex());
+        std::scoped_lock mapLock(m_controller->Mutex());
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
         m_lastTime = now;
+        LOG("MARKER: Tangram: Updating");
         state = map.update(elapsed_seconds);
         willCaptureFrame = m_captureFrameCallback && state.viewComplete();
 
         // only one thread can access the graphics layer exclusively, limitation we need to live with
         std::scoped_lock globalLock(s_globalRenderMutex);
+        LOG("MARKER: Tangram: Rendering");
         map.render();
 
         // if we are not capturing, just swap the buffers right now under this lock
