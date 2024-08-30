@@ -15,7 +15,7 @@ struct Marker : public MarkerT<Marker>
     bool IsVisible() const;
     void IsVisible(bool isVisible);
     void SetDrawOrder(int drawOrder);
-    void SetPointEased(LngLat point, int duration);
+    void SetPointEased(LngLat point, int duration, int easeType);
     void SetPoint(LngLat point);
     void SetDrawable(SoftwareBitmap bitmap);
     void SetStylingFromString(const hstring& styleString);

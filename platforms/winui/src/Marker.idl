@@ -15,7 +15,7 @@ runtimeclass Marker
     Object UserData {get;set;};
 
     void SetDrawOrder(Int32 drawOrder);
-    void SetPointEased(LngLat point, Int32 duration);
+    void SetPointEased(LngLat point, Int32 duration, Int32 easeType);
     void SetPoint(LngLat point);
     void SetDrawable(Windows.Graphics.Imaging.SoftwareBitmap bitmap);
     void SetStylingFromString(String styleString);

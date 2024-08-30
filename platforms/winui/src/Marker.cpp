@@ -21,10 +21,13 @@ void Marker::SetDrawOrder(int drawOrder) {
     m_controller->MarkerSetDrawOrder(m_id, drawOrder);
 }
 
-void Marker::SetPointEased(LngLat point, int duration) {
+void Marker::SetPointEased(LngLat point, int duration, int easeType) {
     if (!m_controller) return;
+    if (easeType < 0 || easeType > 3) 
+        ThrowTangramException("Valid EaseType range is: 0 - 3");
+
     m_controller->MarkerSetPointEased(m_id, Tangram::LngLat{point.Longitude(), point.Latitude()}, duration,
-                                      Tangram::EaseType::linear);
+                                      (Tangram::EaseType)easeType);
 }
 
 void Marker::SetPoint(LngLat point) {

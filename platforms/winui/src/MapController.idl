@@ -36,8 +36,8 @@ runtimeclass MapController
                                         Single flingVelocityX, Single flingVelocityY, Single shoveDistance);
     
     CameraPosition GetCameraPosition();
-    void UpdateCameraPosition(CameraPosition cameraPosition, Single duration);
-    void UpdateCameraPosition(LngLat sw, LngLat ne, Int32 paddingLeft, Int32 paddingTop, Int32 paddingRight, Int32 paddingBottom, Single duration);
+    void UpdateCameraPosition(CameraPosition cameraPosition, Int32 duration);
+    void UpdateCameraPosition(LngLat sw, LngLat ne, Int32 paddingLeft, Int32 paddingTop, Int32 paddingRight, Int32 paddingBottom, Int32 duration);
     LngLat ScreenPositionToLngLat(Double x, Double y);
     Windows.Foundation.Point LngLatToScreenPosition(Double lng, Double lat, Boolean clipToViewPort);
     void CaptureFrame(Windows.Foundation.EventHandler<Windows.Graphics.Imaging.SoftwareBitmap> callback);

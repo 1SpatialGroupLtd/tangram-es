@@ -78,9 +78,9 @@ struct MapController : public MapControllerT<MapController> {
     void PickLabel(float posX, float posY, int identifier);
 
     CameraPosition GetCameraPosition();
-    void UpdateCameraPosition(const CameraPosition& cameraPosition, float duration);
+    void UpdateCameraPosition(const CameraPosition& cameraPosition, int duration);
     void UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, int paddingTop, int paddingRight,
-                              int paddingBottom, float duration);
+                              int paddingBottom, int duration);
 
     LngLat ScreenPositionToLngLat(double x, double y);
     Point LngLatToScreenPosition(double lng, double lat, bool clipToViewPort);
@@ -118,7 +118,7 @@ public:
     
     void MarkerSetVisible(MarkerID, bool visible);
     void MarkerSetDrawOrder(MarkerID, int drawOrder);
-    void MarkerSetPointEased(MarkerID, Tangram::LngLat, float duration, Tangram::EaseType);
+    void MarkerSetPointEased(MarkerID, Tangram::LngLat, int duration, Tangram::EaseType);
     void MarkerSetPoint(MarkerID, Tangram::LngLat);
     void MarkerSetBitmap(MarkerID, int width, int height, uint32_t* data);
     void MarkerSetStylingFromString(MarkerID, const char* styling);

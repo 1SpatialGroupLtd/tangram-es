@@ -298,7 +298,7 @@ CameraPosition MapController::GetCameraPosition() {
     return cam;
 }
 
-void MapController::UpdateCameraPosition(const CameraPosition& cameraPosition, float duration) {
+void MapController::UpdateCameraPosition(const CameraPosition& cameraPosition, int duration) {
     Tangram::CameraUpdate update{};
     update.set = Tangram::CameraUpdate::set_tilt |
                  Tangram::CameraUpdate::set_zoom |
@@ -317,11 +317,11 @@ void MapController::UpdateCameraPosition(const CameraPosition& cameraPosition, f
         SetMapRegionState(MapRegionChangeState::JUMPING);
     }
     
-    m_map->updateCameraPosition(update, duration);
+    m_map->updateCameraPosition(update, duration / 1000.f);
 }
 
 void MapController::UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, int paddingTop, int paddingRight,
-                                         int paddingBottom, float duration) {
+                                         int paddingBottom, int duration) {
     Tangram::CameraUpdate update{};
     update.set = Tangram::CameraUpdate::Flags::set_bounds;
     update.bounds[0] = {sw.Longitude(), sw.Latitude()};
@@ -335,7 +335,7 @@ void MapController::UpdateCameraPosition(LngLat sw, LngLat ne, int paddingLeft, 
         SetMapRegionState(MapRegionChangeState::JUMPING);
     }
 
-    m_map->updateCameraPosition(update, duration);
+    m_map->updateCameraPosition(update, duration / 1000.f);
 }
 
 void MapController::SetMapRegionState(MapRegionChangeState state) {
@@ -384,11 +384,11 @@ void MapController::MarkerSetDrawOrder(MarkerID id, int drawOrder) {
     m_map->markerSetDrawOrder(id, drawOrder);
 }
 
-void MapController::MarkerSetPointEased(MarkerID id, Tangram::LngLat lngLat, float duration, Tangram::EaseType ease) {
+void MapController::MarkerSetPointEased(MarkerID id, Tangram::LngLat lngLat, int duration, Tangram::EaseType ease) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
 
-    m_map->markerSetPointEased(id, lngLat, duration, ease);
+    m_map->markerSetPointEased(id, lngLat, duration / 1000.f, ease);
 }
 
 void MapController::MarkerSetPoint(MarkerID id, Tangram::LngLat lngLat) {
