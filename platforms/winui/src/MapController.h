@@ -56,7 +56,7 @@ struct MapController : public MapControllerT<MapController> {
     void OnViewComplete(event_token const& token) noexcept;
 
     void Init(SwapChainPanel panel);
-    void RequestRender(bool forced = false);
+    void RequestRender();
     void HandlePanGesture(float startX, float startY, float endX, float endY);
     void HandlePinchGesture(float x, float y, float scale, float velocity);
     void HandleShoveGesture(float distance);
@@ -110,30 +110,6 @@ public:
     Tangram::Map& GetMap() const { return *m_map; }
     void RaiseViewCompleteEvent();
     void SetMapRegionState(MapRegionChangeState state);
-    
-    template <typename Action> void ScheduleOnRenderThread(Action action) {
-        struct AtomicDecrementer {
-            std::atomic<int>& counter;
-            
-            ~AtomicDecrementer() {
-                counter.fetch_sub(1);
-            }
-        };
-
-        if (IsShuttingDown()) return;
-
-        if (m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(
-                DispatcherQueuePriority::High,
-                DispatcherQueueHandler([this, action = std::move(action)] {
-                    AtomicDecrementer decrementer{m_queuedRenderRequests};
-                    if (IsShuttingDown()) return;
-                    std::scoped_lock renderLock(m_renderMutex);
-                    if (IsShuttingDown()) return;
-                    action();
-                }))) {
-            m_queuedRenderRequests.fetch_add(1);
-        }
-    }
 
     template <typename Action> void ScheduleOnFileThread(Action action) {
         if (IsShuttingDown()) return;
@@ -168,6 +144,9 @@ public:
     }
 
 private:
+
+    void RenderThread();
+    
     event<EventHandler<int>> m_onViewComplete;
     event<EventHandler<int>> m_onRegionIsChanging;
     event<EventHandler<bool>> m_onRegionWillChange;
@@ -197,15 +176,14 @@ private:
     
     // these mutexes is just really needed to ensure we can stop properly when m_destroy is being set.
     std::mutex m_workMutex;
-    std::mutex m_renderMutex;
 
     /*
       Keeps track of the currently queued actions on the render queue.
       This stops us from queing up too much draw events.
-      We really need only 2 queued requests to provivde a smooth animation as 1 item is usually always in progress,
+      We really need only 2 queued requests to provide a smooth animation as 1 item is usually always in progress,
       and the 2nd one will be executed next.
      */
-    std::atomic<int> m_queuedRenderRequests{};
+    std::atomic<uint64_t> m_renderRequestId{};
 };
 } // namespace winrt::TangramWinUI::implementation
 

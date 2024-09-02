@@ -72,14 +72,15 @@ void MapController::Init(SwapChainPanel panel) {
 
         panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
             {
+                if (IsShuttingDown()) return;
                 std::scoped_lock mapLock(m_mapMutex);
+
                 // we must do it on the UI thread, where we initialized our context
                 m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
             }
 
             // request render twice to surely work
-            RequestRender(true);
-            RequestRender(true);
+            RequestRender();
         }));
     }
 
@@ -87,20 +88,13 @@ void MapController::Init(SwapChainPanel panel) {
     auto height = static_cast<int>(panel.ActualHeight());
     auto density = static_cast<float>(panel.XamlRoot().RasterizationScale());
 
-    ScheduleOnRenderThread([this, density, width, height] {
-        {
-            if (IsShuttingDown()) return;
-            std::scoped_lock rendererRenderLock(m_renderer->Mutex());
-            if (IsShuttingDown()) return;
-
-            m_renderer->MakeActive();
-            m_map->setPixelScale(density);
-            m_map->setupGL();
-            m_map->resize(width, height);
-        }
-
-        RequestRender(true);
-    });
+    m_map->setPixelScale(density);
+    m_map->setupGL();
+    m_map->resize(width, height);
+    
+    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(
+         DispatcherQueuePriority::High,
+         DispatcherQueueHandler([this] { RenderThread(); }));
 }
 
 void MapController::HandlePanGesture(float startX, float startY, float endX, float endY) {
@@ -176,7 +170,7 @@ void MapController::CaptureFrame(EventHandler<SoftwareBitmap> callback) {
 
 IAsyncAction MapController::Shutdown() {
     m_shuttingDown = true;
-    std::scoped_lock lock(m_mapMutex, m_renderMutex, m_workMutex, m_renderer->Mutex());
+    std::scoped_lock lock(m_mapMutex, m_workMutex);
     m_onRegionIsChanging.clear();
     m_onRegionWillChange.clear();
     m_onRegionDidChange.clear();
@@ -369,6 +363,22 @@ void MapController::SetMapRegionState(MapRegionChangeState state) {
     }
 }
 
+void MapController::RenderThread() {
+    m_renderer->MakeActive();
+
+    uint64_t lastThreadRedrawId = -1;
+
+    while (!IsShuttingDown()) {
+        const auto currentRequestId = m_renderRequestId.load();
+
+        if(lastThreadRedrawId != currentRequestId) {
+            lastThreadRedrawId = currentRequestId;
+            std::scoped_lock mapLock(Mutex());
+            m_renderer->Render();
+        }
+    }
+}
+
 void MapController::SetMapRegionStateIdle() {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
@@ -556,11 +566,9 @@ void MapController::SetLabelPickHandler(EventHandler<PickResult> const& handler)
     m_labelPickHandler = handler;
 }
 
-void MapController::RequestRender(bool forced) {
+void MapController::RequestRender() {
     if (IsShuttingDown()) return;
-    // we allow only 2 render requests to be present ( 1 is always being processed, so it is really just queues a
-    // next one)
-    if (forced || m_queuedRenderRequests.load() < 2) ScheduleOnRenderThread([this] { m_renderer->Render(); });
+    m_renderRequestId.fetch_add(1);
 }
 
 } // namespace winrt::TangramWinUI::implementation

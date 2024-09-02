@@ -109,33 +109,24 @@ void Renderer::Destroy() {
 }
 
 void Renderer::CaptureFrame(CaptureCallback callback) {
-    std::scoped_lock lock(m_mutex);
     m_captureFrameCallback = std::move(callback);
     m_controller->RequestRender();
 }
 
 void Renderer::Render() {
-    LOG("MARKER: Tangram: Render method");
-
-    // should we just spin to not yield this thread?
-    std::scoped_lock lock(m_mutex);
-
     auto& map = m_controller->GetMap();
     Tangram::MapState state;
     bool willCaptureFrame;
 
     {
-        std::scoped_lock mapLock(m_controller->Mutex());
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
         m_lastTime = now;
-        LOG("MARKER: Tangram: Updating");
         state = map.update(elapsed_seconds);
         willCaptureFrame = m_captureFrameCallback && state.viewComplete();
 
         // only one thread can access the graphics layer exclusively, limitation we need to live with
         std::scoped_lock globalLock(s_globalRenderMutex);
-        LOG("MARKER: Tangram: Rendering");
         map.render();
 
         // if we are not capturing, just swap the buffers right now under this lock
@@ -151,7 +142,7 @@ void Renderer::Render() {
     if (state.isAnimating()) {
         m_controller->RequestRender();
     }
-
+    
     if (isCameraEasing) {
         if (!m_isPrevCameraEasing) {
              m_controller->SetMapRegionState(MapRegionChangeState::ANIMATING);
@@ -165,14 +156,14 @@ void Renderer::Render() {
     if (mapViewBecameCompleted) {
         m_controller->RaiseViewCompleteEvent();
     }
-
+    
     if (willCaptureFrame) {
         using winrt::Windows::Foundation::MemoryBuffer;
         using winrt::Windows::Storage::Streams::Buffer;
         auto width = map.getViewportWidth();
         auto height = map.getViewportHeight();
 
-        // create sufficient size buffer and make sure
+        // create sufficient size buffer
         auto buffer = Buffer(width * height * sizeof(uint32_t));
         buffer.Length(buffer.Capacity());
 

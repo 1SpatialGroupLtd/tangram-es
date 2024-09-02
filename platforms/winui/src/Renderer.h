@@ -24,7 +24,6 @@ public:
     void InitRendererOnUiThread(SwapChainPanel& swapChainPanel);
     void MakeActive();
     void Destroy();
-    std::mutex& Mutex() { return m_mutex; }
 private:
     winrt::TangramWinUI::implementation::MapController* m_controller;    
     EGLDisplay m_display{};
@@ -35,7 +34,6 @@ private:
     CaptureCallback m_captureFrameCallback;
     bool m_isPrevMapViewComplete{};
     bool m_isPrevCameraEasing{};
-    std::mutex m_mutex{};
  };
 
 } // namespace Tangram
