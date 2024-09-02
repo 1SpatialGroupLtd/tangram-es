@@ -437,8 +437,6 @@ int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoo
 
     Tangram::SceneOptions options{};
     options.numTileWorkers = 2;
-    options.prefetchTiles = true;
-    options.memoryTileCacheSize = static_cast<uint32_t>(64 * 1024 * 1024);
     options.url = Tangram::Url(to_string(resourceRoot));
     options.yaml = to_string(yaml);
     return m_map->loadScene(std::move(options), true);
@@ -567,6 +565,7 @@ void MapController::SetLabelPickHandler(EventHandler<PickResult> const& handler)
 }
 
 void MapController::RequestRender() {
+    if (IsShuttingDown()) return;
     m_renderRequestId.fetch_add(1);
 }
 
