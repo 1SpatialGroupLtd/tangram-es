@@ -134,7 +134,7 @@ public:
         }
 
         m_workDispatcherQueueController.DispatcherQueue().TryEnqueue(
-            DispatcherQueuePriority::Normal,
+            DispatcherQueuePriority::High,
             DispatcherQueueHandler([this, action = std::move(action)] {
                 if (IsShuttingDown()) return;
                 std::scoped_lock workLock(m_workMutex);
