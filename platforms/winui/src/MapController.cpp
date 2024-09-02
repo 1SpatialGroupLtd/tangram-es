@@ -567,7 +567,6 @@ void MapController::SetLabelPickHandler(EventHandler<PickResult> const& handler)
 }
 
 void MapController::RequestRender() {
-    if (IsShuttingDown()) return;
     m_renderRequestId.fetch_add(1);
 }
 
