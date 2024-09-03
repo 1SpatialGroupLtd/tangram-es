@@ -48,12 +48,14 @@ extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;
 #if defined(TANGRAM_WINRT) || defined(TANGRAM_WINDOWS)
 	#define GL_GLEXT_PROTOTYPES
 #ifdef TANGRAM_WINRT
+	#define EGL_EGLEXT_PROTOTYPES
 	// OpenGL ES includes
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
 
 	#include <EGL/egl.h>
 	#include <EGL/eglext.h>
+	#include <EGL/eglext_angle.h>
 #elif TANGRAM_WINDOWS
 	#include <GLFW/glfw3.h>
 	#include <glad/glad.h>

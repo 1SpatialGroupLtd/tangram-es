@@ -24,8 +24,10 @@ const EGLint configAttributes[] = {EGL_RED_SIZE,
                                    8,
                                    EGL_RENDERABLE_TYPE,
                                    EGL_OPENGL_ES3_BIT,
-                                   EGL_SURFACE_TYPE,
-                                   EGL_PBUFFER_BIT,
+                                   EGL_SAMPLE_BUFFERS,
+                                   1,
+                                   EGL_SAMPLES,
+                                   4,
                                    EGL_NONE};
 
 const EGLint contextAttributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
@@ -35,13 +37,14 @@ const EGLint defaultDisplayAttributes[] = {
     // eglInitialize will only succeed with these attributes if the hardware supports D3D11 Feature Level 10_0+.
     EGL_PLATFORM_ANGLE_TYPE_ANGLE,
     EGL_PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
+    EGL_PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE,
+    EGL_DONT_CARE,
+    EGL_PLATFORM_ANGLE_MAX_VERSION_MINOR_ANGLE,
+    EGL_DONT_CARE,
+    EGL_NONE,
+};
 
-    // EGL_PLATFORM_ANGLE_ENABLE_AUTOMATIC_TRIM_ANGLE is an option that enables ANGLE to automatically call
-    // the IDXGIDevice3::Trim method on behalf of the application when it gets suspended.
-    // Calling IDXGIDevice3::Trim when an application is suspended is a Windows Store application certification
-    // requirement.
-    EGL_PLATFORM_ANGLE_ENABLE_AUTOMATIC_TRIM_ANGLE,
-    EGL_TRUE,
+const EGLint surfaceAttributes[] = {
     EGL_NONE,
 };
 
@@ -58,8 +61,7 @@ void Renderer::InitRendererOnUiThread(SwapChainPanel& swapChainPanel) {
     // it is a very hack, unstable thing that might broke with newer version of ANGLE,
     // but it lets use create new contexts...
     static int displayId{0};
-    m_display = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, reinterpret_cast<void*>(displayId),
-                                         defaultDisplayAttributes);
+    m_display = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, reinterpret_cast<void*>(displayId), defaultDisplayAttributes);
     ++displayId;
 
     if (m_display == EGL_NO_DISPLAY) { ThrowTangramException("Failed to get EGL display"); }
@@ -77,12 +79,6 @@ void Renderer::InitRendererOnUiThread(SwapChainPanel& swapChainPanel) {
     const auto inspectable = swapChainPanel.as<IInspectable>().get();
 
     if (m_context == EGL_NO_CONTEXT) { ThrowTangramException("Failed to create EGL context"); }
-
-    const EGLint surfaceAttributes[] = { // EGL_ANGLE_SURFACE_RENDER_TO_BACK_BUFFER is part of the same optimization as
-        // EGL_ANGLE_DISPLAY_ALLOW_RENDER_TO_BACK_BUFFER (see above). If you have
-        // compilation issues with it then please update your Visual Studio templates.
-        EGL_NONE};
-
 
     m_surface = eglCreateWindowSurface(m_display, m_config, inspectable, surfaceAttributes);
 
@@ -117,6 +113,9 @@ void Renderer::Render() {
     auto& map = m_controller->GetMap();
     Tangram::MapState state;
     bool willCaptureFrame;
+
+    // just a hint for the workers to prepare for oncoming swap
+    eglPrepareSwapBuffersANGLE(m_display, m_surface);
 
     {
         auto now = std::chrono::high_resolution_clock::now();
