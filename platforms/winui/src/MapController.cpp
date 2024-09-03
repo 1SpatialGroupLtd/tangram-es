@@ -188,11 +188,13 @@ IAsyncAction MapController::Shutdown() {
     m_shuttingDown = true;
 
     std::scoped_lock lock(m_mapMutex);
+
     m_onRegionIsChanging.clear();
     m_onRegionWillChange.clear();
     m_onRegionDidChange.clear();
     m_onViewComplete.clear();
     m_onSceneLoaded.clear();
+    m_onLoaded.clear();
 
     co_await m_renderDispatcherQueueController.ShutdownQueueAsync();
     co_await m_workDispatcherQueueController.ShutdownQueueAsync();
