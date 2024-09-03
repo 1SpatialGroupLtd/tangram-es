@@ -186,7 +186,8 @@ void MapController::CaptureFrame(EventHandler<SoftwareBitmap> callback) {
 
 IAsyncAction MapController::Shutdown() {
     m_shuttingDown = true;
-    std::scoped_lock lock(m_mapMutex, m_workMutex);
+
+    std::scoped_lock lock(m_mapMutex);
     m_onRegionIsChanging.clear();
     m_onRegionWillChange.clear();
     m_onRegionDidChange.clear();

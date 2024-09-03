@@ -125,17 +125,13 @@ public:
         auto queue = m_workDispatcherQueueController.DispatcherQueue();
 
         if (queue.HasThreadAccess()) {
-            std::scoped_lock workLock(m_workMutex);
-            if (IsShuttingDown()) return;
             action();
             return;
         }
 
-        m_workDispatcherQueueController.DispatcherQueue().TryEnqueue(
+        queue.TryEnqueue(
             DispatcherQueuePriority::High,
             DispatcherQueueHandler([this, action = std::move(action)] {
-                if (IsShuttingDown()) return;
-                std::scoped_lock workLock(m_workMutex);
                 if (IsShuttingDown()) return;
                 action();
             }));
@@ -172,9 +168,6 @@ private:
 
     /* Guards the interactions on m_map instance. */
     std::mutex m_mapMutex;
-    
-    // these mutexes is just really needed to ensure we can stop properly when m_destroy is being set.
-    std::mutex m_workMutex;
 
     /*
       Keeps track of the currently queued actions on the render queue.
