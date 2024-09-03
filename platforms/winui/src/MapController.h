@@ -6,14 +6,6 @@
 #include "Renderer.h"
 #include <mutex>
 
-namespace winrt::TangramWinUI::implementation {
-    struct MapData;
-    struct Marker;
-}
-
-using NativeMapData = winrt::TangramWinUI::implementation::MapData;
-using Tangram::MarkerID;
-
 namespace TangramWinUI {
 class TangramPlatform;
 } // namespace TangramWinUI
@@ -24,9 +16,11 @@ enum class MapRegionChangeState {
     ANIMATING,
 };
 
+using winrt::Microsoft::UI::Xaml::RoutedEventArgs;
+using WinRTMapController = winrt::TangramWinUI::MapController;
 using winrt::Windows::Foundation::Point;
-using RuntimeMapData = winrt::TangramWinUI::MapData;
-using RuntimeMarker = winrt::TangramWinUI::Marker;
+using WinRTMapData = winrt::TangramWinUI::MapData;
+using WinRTMarker = winrt::TangramWinUI::Marker;
 
 using winrt::Microsoft::UI::Dispatching::DispatcherQueueController;
 using winrt::Microsoft::UI::Dispatching::DispatcherQueueHandler;
@@ -36,9 +30,12 @@ using winrt::Microsoft::UI::Dispatching::DispatcherQueue;
 
 namespace winrt::TangramWinUI::implementation {
 struct MapController : public MapControllerT<MapController> {
-
     MapController();
+    MapController(SwapChainPanel panel);
     ~MapController() override;
+
+    event_token OnLoaded(EventHandler<WinRTMapController> const& handler);
+    void OnLoaded(event_token const& token) noexcept;
 
     event_token OnSceneLoaded(EventHandler<uint32_t> const& handler);
     void OnSceneLoaded(event_token const& token) noexcept;
@@ -57,7 +54,6 @@ struct MapController : public MapControllerT<MapController> {
 
     void UseCachedGlState(bool useCache);
 
-    void Init(SwapChainPanel panel);
     void RequestRender();
     void HandlePanGesture(float startX, float startY, float endX, float endY);
     void HandlePinchGesture(float x, float y, float scale, float velocity);
@@ -88,12 +84,12 @@ struct MapController : public MapControllerT<MapController> {
     void SetLayer(const hstring& layerName, const hstring& style);
     void SetTileSourceUrl(const hstring& sourceName, const hstring& url);
     hstring GetTileSourceUrl(const hstring& sourceName);
-    int LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot);
+    int LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync);
     bool LayerExists(const hstring& layerName);
-    RuntimeMapData AddDataLayer(const hstring& layerName);
-    void RemoveDataLayer(const RuntimeMapData& layer);
-    void RemoveMarker(const RuntimeMarker& marker);
-    RuntimeMarker AddMarker();
+    WinRTMapData AddDataLayer(const hstring& layerName);
+    void RemoveDataLayer(const WinRTMapData& layer);
+    void RemoveMarker(const WinRTMarker& marker);
+    WinRTMarker AddMarker();
     void RemoveAllMarkers();
     void SetMaxZoomLevel(float maxZoomLevel);
     float GetPixelsPerMeter();
@@ -154,13 +150,14 @@ private:
     event<EventHandler<bool>> m_onRegionWillChange;
     event<EventHandler<bool>> m_onRegionDidChange;
     event<EventHandler<uint32_t>> m_onSceneLoaded;
+    event<EventHandler<WinRTMapController>> m_onLoaded;
 
     std::shared_ptr<Tangram::Map> m_map;
     std::unique_ptr<::TangramWinUI::Renderer> m_renderer;
 
     SwapChainPanel m_panel;
-    Windows::Foundation::Collections::IMap<hstring, RuntimeMapData> m_tileSources;
-    Windows::Foundation::Collections::IMap<uint32_t, RuntimeMarker> m_markers;
+    Windows::Foundation::Collections::IMap<hstring, WinRTMapData> m_tileSources;
+    Windows::Foundation::Collections::IMap<uint32_t, WinRTMarker> m_markers;
     EventHandler<PickResult> m_markerPickHandler;
     EventHandler<PickResult> m_featurePickHandler;
     EventHandler<PickResult> m_labelPickHandler;
@@ -186,6 +183,7 @@ private:
       and the 2nd one will be executed next.
      */
     std::atomic<uint64_t> m_renderRequestId{};
+    bool m_loaded{};
 };
 } // namespace winrt::TangramWinUI::implementation
 

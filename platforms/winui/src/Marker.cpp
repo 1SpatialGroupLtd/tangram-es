@@ -11,11 +11,10 @@ namespace winrt::TangramWinUI::implementation {
 bool Marker::IsVisible() const { return m_isVisible; }
 
 void Marker::IsVisible(bool isVisible) {
-    if (m_isVisible == isVisible || !m_controller) return;
-
-    if (IsInvalid()) return;
+    if (IsInvalid() || m_isVisible == isVisible) return;
     std::scoped_lock mapLock(m_controller->Mutex());
-    if(IsInvalid()) return ;
+    if(IsInvalid()) return;
+    
     auto& map = m_controller->GetMap();
 
     m_isVisible = isVisible;

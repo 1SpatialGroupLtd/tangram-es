@@ -12,14 +12,14 @@ namespace TangramWinUI {
 runtimeclass MapController
 {
     MapController();
-    
+    MapController(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
     event Windows.Foundation.EventHandler<UInt32> OnSceneLoaded;    
+    event Windows.Foundation.EventHandler<MapController> OnLoaded;
     event Windows.Foundation.EventHandler<Int32> OnViewComplete; 
     event Windows.Foundation.EventHandler<Int32> OnRegionIsChanging; 
     event Windows.Foundation.EventHandler<Boolean> OnRegionWillChange; 
     event Windows.Foundation.EventHandler<Boolean> OnRegionDidChange; 
 
-    void Init(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
     void RequestRender();
     void UseCachedGlState(Boolean useCache);
     Windows.Foundation.IAsyncAction Shutdown();
@@ -45,7 +45,7 @@ runtimeclass MapController
     void SetLayer(String layerName, String style);
     void SetTileSourceUrl(String sourceName, String url);
     String GetTileSourceUrl(String sourceName);
-    Int32 LoadSceneYaml(String yaml, String resourceRoot);
+    Int32 LoadSceneYaml(String yaml, String resourceRoot, Boolean loadAsync);
     Boolean LayerExists(String layerName);
     MapData AddDataLayer(String layerName);
     void RemoveDataLayer(MapData layer);

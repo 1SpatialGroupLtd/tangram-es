@@ -12,7 +12,8 @@
 
 using winrt::Microsoft::UI::Xaml::SizeChangedEventArgs;
 using winrt::Microsoft::UI::Xaml::SizeChangedEventHandler;
-using NativeMarker = winrt::TangramWinUI::implementation::Marker;
+using WinRTMarkerImpl = winrt::TangramWinUI::implementation::Marker;
+using WinRTMapDataImpl = winrt::TangramWinUI::implementation::MapData;
 
 namespace winrt::TangramWinUI::implementation {
 
@@ -23,11 +24,60 @@ MapController::~MapController() {
 MapController::MapController()
     : m_fileDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
       m_renderDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
-      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread())
-{
-    m_tileSources = multi_threaded_map<hstring, RuntimeMapData>();
-    m_markers = multi_threaded_map<uint32_t, RuntimeMarker>();
+      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()) {
 }
+
+MapController::MapController(SwapChainPanel panel) : MapController() {
+    m_tileSources = multi_threaded_map<hstring, WinRTMapData>();
+    m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
+    m_panel = panel;
+    
+    // we create the context on the ui thread!
+    m_renderer = std::make_unique<::TangramWinUI::Renderer>(*this);
+    m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
+    assert(m_uiDispatcherQueue);
+    auto platform = new ::TangramWinUI::TangramPlatform(*this, Tangram::UrlClient::Options{});
+    m_map = std::make_shared<Tangram::Map>(std::unique_ptr<::Tangram::Platform>(platform));
+    m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
+    m_renderer->InitRendererOnUiThread(m_panel);
+
+    m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
+        {
+            std::scoped_lock mapLock(m_mapMutex);
+            if (IsShuttingDown()) return;
+
+            // we must do it on the UI thread, where we initialized our context
+            m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
+        }
+
+        RequestRender();
+    }));
+
+    auto width = static_cast<int>(m_panel.ActualWidth());
+    auto height = static_cast<int>(m_panel.ActualHeight());
+    auto density = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
+
+    m_map->setPixelScale(density);
+    m_map->setupGL();
+    m_map->resize(width, height);
+
+    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(
+        DispatcherQueuePriority::Normal, DispatcherQueueHandler([this] {RenderThread(); }));
+}
+
+event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& handler) {
+    auto token =  m_onLoaded.add(handler);
+    bool isLoaded = false;
+    {
+        std::scoped_lock lock(m_mapMutex);
+        isLoaded = m_loaded;
+    }
+
+    if (isLoaded) m_onLoaded(m_panel, *this);
+    return token;
+}
+
+void MapController::OnLoaded(event_token const& token) noexcept { m_onLoaded.remove(token); }
 
 event_token MapController::OnSceneLoaded(EventHandler<uint32_t> const& handler) { return m_onSceneLoaded.add(handler); }
 
@@ -55,48 +105,6 @@ event_token MapController::OnViewComplete(EventHandler<int> const& handler) { re
 
 void MapController::OnViewComplete(event_token const& token) noexcept { m_onViewComplete.remove(token); }
 
-void MapController::Init(SwapChainPanel panel) {
-    {
-        std::scoped_lock lock(m_mapMutex);
-        m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
-        assert(m_uiDispatcherQueue);
-        m_panel = panel;
-        // we create the context on the ui thread!
-        m_renderer = std::make_unique<::TangramWinUI::Renderer>(*this);
-        auto platform = new ::TangramWinUI::TangramPlatform(*this, Tangram::UrlClient::Options{});
-        m_map = std::make_shared<Tangram::Map>(std::unique_ptr<::Tangram::Platform>(platform));
-
-        m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
-
-        m_renderer->InitRendererOnUiThread(panel);
-
-        panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
-            {
-                if (IsShuttingDown()) return;
-                std::scoped_lock mapLock(m_mapMutex);
-
-                // we must do it on the UI thread, where we initialized our context
-                m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
-            }
-
-            // request render twice to surely work
-            RequestRender();
-        }));
-    }
-
-    auto width = static_cast<int>(panel.ActualWidth());
-    auto height = static_cast<int>(panel.ActualHeight());
-    auto density = static_cast<float>(panel.XamlRoot().RasterizationScale());
-
-    m_map->setPixelScale(density);
-    m_map->setupGL();
-    m_map->resize(width, height);
-    
-    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(
-         DispatcherQueuePriority::High,
-         DispatcherQueueHandler([this] { RenderThread(); }));
-}
-
 void MapController::UseCachedGlState(bool useCache) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
@@ -107,6 +115,7 @@ void MapController::UseCachedGlState(bool useCache) {
 void MapController::HandlePanGesture(float startX, float startY, float endX, float endY) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
+
     SetMapRegionState(MapRegionChangeState::JUMPING);
     m_map->handlePanGesture(startX, startY, endX, endY);
 }
@@ -197,7 +206,7 @@ IAsyncAction MapController::Shutdown() {
     m_labelPickHandler = nullptr;
 
     for (auto& t : m_tileSources) {
-        auto nativeMapData = winrt::get_self<NativeMapData>(t.Value());
+        auto nativeMapData = winrt::get_self<WinRTMapDataImpl>(t.Value());
         m_map->removeTileSource(*nativeMapData->Source());
         nativeMapData->Invalidate();
     }
@@ -205,7 +214,7 @@ IAsyncAction MapController::Shutdown() {
     m_tileSources.Clear();
 
     m_map->markerRemoveAll();
-    for (auto& marker : m_markers) { winrt::get_self<NativeMarker>(marker.Value())->Invalidate(); }
+    for (auto& marker : m_markers) { winrt::get_self<WinRTMarkerImpl>(marker.Value())->Invalidate(); }
     m_markers.Clear();
 
     m_map->shutdown();
@@ -371,7 +380,13 @@ void MapController::SetMapRegionState(MapRegionChangeState state) {
 }
 
 void MapController::RenderThread() {
-    m_renderer->MakeActive();
+    {
+        std::scoped_lock lock(m_mapMutex);
+        m_renderer->MakeActive();
+        m_loaded = true;
+    }
+
+    ScheduleOnWorkThread([this]() { m_onLoaded(m_panel, *this); });
 
     uint64_t lastThreadRedrawId = -1;
 
@@ -380,7 +395,6 @@ void MapController::RenderThread() {
 
         if(lastThreadRedrawId != currentRequestId) {
             lastThreadRedrawId = currentRequestId;
-            std::scoped_lock mapLock(Mutex());
             m_renderer->Render();
         }
     }
@@ -438,7 +452,7 @@ hstring MapController::GetTileSourceUrl(const hstring& sourceName) {
     return to_hstring(m_map->getTileSourceUrl(to_string(sourceName)));
 }
 
-int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot) {
+int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return -1;
 
@@ -446,7 +460,7 @@ int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoo
     options.numTileWorkers = 2;
     options.url = Tangram::Url(to_string(resourceRoot));
     options.yaml = to_string(yaml);
-    return m_map->loadScene(std::move(options), true);
+    return m_map->loadScene(std::move(options), loadAsync);
 }
 
 bool MapController::LayerExists(const hstring& layerName) {
@@ -455,7 +469,7 @@ bool MapController::LayerExists(const hstring& layerName) {
     return m_map->layerExists(to_string(layerName));
 }
 
-RuntimeMapData MapController::AddDataLayer(const hstring& layerName) {
+WinRTMapData MapController::AddDataLayer(const hstring& layerName) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return nullptr;
 
@@ -465,8 +479,8 @@ RuntimeMapData MapController::AddDataLayer(const hstring& layerName) {
 
     auto source = std::make_shared<Tangram::ClientDataSource>(m_map->getPlatform(), to_string(layerName), "");
 
-    auto mapData = RuntimeMapData();
-    auto native = winrt::get_self<NativeMapData>(mapData);
+    auto mapData = WinRTMapData();
+    auto native = winrt::get_self<WinRTMapDataImpl>(mapData);
     native->Init(source.get(), this);
   
     (void)m_tileSources.Insert(layerName, mapData);
@@ -475,30 +489,30 @@ RuntimeMapData MapController::AddDataLayer(const hstring& layerName) {
     return mapData;
 }
 
-void MapController::RemoveDataLayer(const RuntimeMapData& mapData) {
+void MapController::RemoveDataLayer(const WinRTMapData& mapData) {
     // at this point the map controller is locked by MapData !
     if (!m_tileSources.HasKey(mapData.Name())) return;
     m_tileSources.Remove(mapData.Name());
 
-    const auto nativeMapData = winrt::get_self<NativeMapData>(mapData);
+    const auto nativeMapData = winrt::get_self<WinRTMapDataImpl>(mapData);
     if (auto nativeSource = nativeMapData->Source()) { m_map->removeTileSource(*nativeSource); }
 }
 
-void MapController::RemoveMarker(const RuntimeMarker& marker) {
+void MapController::RemoveMarker(const WinRTMarker& marker) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
 
     m_map->markerRemove(marker.Id());
     m_markers.Remove(marker.Id());
-    get_self<NativeMarker>(marker)->Invalidate();
+    get_self<WinRTMarkerImpl>(marker)->Invalidate();
 }
 
 TangramWinUI::Marker MapController::AddMarker() {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return nullptr;
 
-    auto marker = RuntimeMarker();
-    auto nativeMarker = winrt::get_self<NativeMarker>(marker);
+    auto marker = WinRTMarker();
+    auto nativeMarker = winrt::get_self<WinRTMarkerImpl>(marker);
     auto id = m_map->markerAdd();
     nativeMarker->Init(id, this);
 
@@ -511,7 +525,7 @@ void MapController::RemoveAllMarkers() {
     if (IsShuttingDown()) return;
 
     m_map->markerRemoveAll();
-    for (auto& marker : m_markers) { winrt::get_self<NativeMarker>(marker.Value())->Invalidate(); }
+    for (auto& marker : m_markers) { winrt::get_self<WinRTMarkerImpl>(marker.Value())->Invalidate(); }
     m_markers.Clear();
 }
 
@@ -572,7 +586,6 @@ void MapController::SetLabelPickHandler(EventHandler<PickResult> const& handler)
 }
 
 void MapController::RequestRender() {
-    if (IsShuttingDown()) return;
     m_renderRequestId.fetch_add(1);
 }
 
