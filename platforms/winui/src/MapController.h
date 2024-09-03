@@ -55,6 +55,8 @@ struct MapController : public MapControllerT<MapController> {
     event_token OnViewComplete(EventHandler<int> const& handler);
     void OnViewComplete(event_token const& token) noexcept;
 
+    void UseCachedGlState(bool useCache);
+
     void Init(SwapChainPanel panel);
     void RequestRender();
     void HandlePanGesture(float startX, float startY, float endX, float endY);

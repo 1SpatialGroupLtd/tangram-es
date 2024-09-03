@@ -21,6 +21,7 @@ runtimeclass MapController
 
     void Init(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
     void RequestRender();
+    void UseCachedGlState(Boolean useCache);
     Windows.Foundation.IAsyncAction Shutdown();
     void HandlePanGesture(Single startX, Single startY, Single endX, Single endY);
     void HandlePinchGesture(Single x, Single y, Single scale, Single velocity);

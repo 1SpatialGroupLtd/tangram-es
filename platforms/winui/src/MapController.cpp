@@ -97,6 +97,13 @@ void MapController::Init(SwapChainPanel panel) {
          DispatcherQueueHandler([this] { RenderThread(); }));
 }
 
+void MapController::UseCachedGlState(bool useCache) {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return;
+
+    m_map->useCachedGlState(useCache);    
+}
+
 void MapController::HandlePanGesture(float startX, float startY, float endX, float endY) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
