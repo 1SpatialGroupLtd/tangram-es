@@ -148,7 +148,7 @@ private:
     event<EventHandler<uint32_t>> m_onSceneLoaded;
     event<EventHandler<WinRTMapController>> m_onLoaded;
 
-    std::shared_ptr<Tangram::Map> m_map;
+    std::unique_ptr<Tangram::Map> m_map;
     std::unique_ptr<::TangramWinUI::Renderer> m_renderer;
 
     SwapChainPanel m_panel;

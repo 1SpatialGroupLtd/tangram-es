@@ -37,7 +37,7 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
     m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
     assert(m_uiDispatcherQueue);
     auto platform = new ::TangramWinUI::TangramPlatform(*this, Tangram::UrlClient::Options{});
-    m_map = std::make_shared<Tangram::Map>(std::unique_ptr<::Tangram::Platform>(platform));
+    m_map = std::make_unique<Tangram::Map>(std::unique_ptr<::Tangram::Platform>(platform));
     m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
     m_renderer->InitRendererOnUiThread(m_panel);
 
