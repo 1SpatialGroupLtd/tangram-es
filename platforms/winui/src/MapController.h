@@ -120,6 +120,16 @@ public:
             }));
     }
 
+    template <typename Action> void ScheduleOnUIThread(Action action) {
+        if (IsShuttingDown()) return;
+
+        m_uiDispatcherQueue.TryEnqueue(
+            DispatcherQueuePriority::High, DispatcherQueueHandler([this, action = std::move(action)] {
+                if (IsShuttingDown()) return;
+                action();
+            }));
+    }
+
     template <typename Action> void ScheduleOnWorkThread(Action action) {
         if (IsShuttingDown()) return;
 

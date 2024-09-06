@@ -66,13 +66,15 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
 
 event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& handler) {
     auto token =  m_onLoaded.add(handler);
-    bool isLoaded = false;
+    bool isLoaded;
     {
         std::scoped_lock lock(m_mapMutex);
         isLoaded = m_loaded;
     }
+    
+    if (isLoaded)
+        ScheduleOnUIThread([this]{ m_onLoaded(m_panel, *this); });
 
-    if (isLoaded) m_onLoaded(m_panel, *this);
     return token;
 }
 
@@ -388,7 +390,7 @@ void MapController::RenderThread() {
         m_loaded = true;
     }
 
-    ScheduleOnWorkThread([this]() { m_onLoaded(m_panel, *this); });
+    ScheduleOnUIThread([this]() { m_onLoaded(m_panel, *this); });
 
     uint64_t lastThreadRedrawId = -1;
 
