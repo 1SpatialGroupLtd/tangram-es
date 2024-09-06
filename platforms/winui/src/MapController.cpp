@@ -8,7 +8,6 @@
 
 #include <winrt/Windows.ApplicationModel.Core.h>
 #include <winrt/Windows.Storage.Streams.h>
-#include <winrt/Microsoft.UI.Dispatching.h>
 
 using winrt::Microsoft::UI::Xaml::SizeChangedEventArgs;
 using winrt::Microsoft::UI::Xaml::SizeChangedEventHandler;
@@ -405,6 +404,13 @@ void MapController::SetMapRegionStateIdle() {
     if (IsShuttingDown()) return;
 
     SetMapRegionState(MapRegionChangeState::IDLE);
+}
+
+void MapController::CancelCameraAnimation() {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return;
+
+    m_map->cancelCameraAnimation();
 }
 
 void MapController::RaiseViewCompleteEvent() {

@@ -101,6 +101,7 @@ struct MapController : public MapControllerT<MapController> {
     void SetFeaturePickHandler(EventHandler<PickResult> const& handler);
     void SetLabelPickHandler(EventHandler<PickResult> const& handler);
     void SetMapRegionStateIdle();
+    void CancelCameraAnimation();
 
 public:
     volatile bool IsShuttingDown() const { return m_shuttingDown; }

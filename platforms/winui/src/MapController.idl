@@ -36,6 +36,7 @@ runtimeclass MapController
                                         Single rotPosY, Single rotRadians, Single flingPosX, Single flingPosY,
                                         Single flingVelocityX, Single flingVelocityY, Single shoveDistance);
     
+    void CancelCameraAnimation();
     CameraPosition GetCameraPosition();
     void UpdateCameraPosition(CameraPosition cameraPosition, Int32 duration);
     void UpdateCameraPosition(LngLat sw, LngLat ne, Int32 paddingLeft, Int32 paddingTop, Int32 paddingRight, Int32 paddingBottom, Int32 duration);
