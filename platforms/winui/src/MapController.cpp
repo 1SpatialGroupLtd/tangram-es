@@ -42,14 +42,29 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
 
     m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
         {
-            std::scoped_lock mapLock(m_mapMutex);
-            if (IsShuttingDown()) return;
+            {
+                std::scoped_lock mapLock(m_mapMutex);
+                if (IsShuttingDown()) return;
 
-            // we must do it on the UI thread, where we initialized our context
-            m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
+                // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
+                // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so we do not need to resize.
+                // When we are down-sizing can have the same padding to not call resize until we go very low, just keep the current viewport.
+
+                int currentWidth = m_map->getViewportWidth(); 
+                int currentHeight = m_map->getViewportHeight();
+
+                auto newWidth = static_cast<int>(e.NewSize().Width);
+                auto newHeight= static_cast<int>(e.NewSize().Height);
+
+                if (newWidth != currentWidth || newHeight != currentHeight) {
+                    // we must do it on the UI thread, where we initialized our context
+                    m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
+
+                    std::scoped_lock resizeLock(m_resizeMutex);
+                    m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
+                }
+            }
         }
-
-        RequestRender();
     }));
 
     auto width = static_cast<int>(m_panel.ActualWidth());
@@ -396,8 +411,20 @@ void MapController::RenderThread() {
 
     while (!IsShuttingDown()) {
         const auto currentRequestId = m_renderRequestId.load();
+        auto resizing = false;
 
-        if(lastThreadRedrawId != currentRequestId) {
+        {
+            std::scoped_lock resizeLock(m_resizeMutex);
+            if (m_resizeRequestedAt.has_value()) {
+                resizing = true;
+                
+                // lets give the UI N-millisec for redrawing
+                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
+                if (diff.count() > 10) m_resizeRequestedAt = {};
+            }
+        }
+
+        if(lastThreadRedrawId != currentRequestId || resizing) {
             lastThreadRedrawId = currentRequestId;
             m_renderer->Render();
         }

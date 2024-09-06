@@ -179,6 +179,8 @@ private:
 
     /* Guards the interactions on m_map instance. */
     std::mutex m_mapMutex;
+    std::mutex m_resizeMutex;
+    std::optional<std::chrono::time_point<std::chrono::steady_clock>> m_resizeRequestedAt;
 
     /*
       Keeps track of the currently queued actions on the render queue.
