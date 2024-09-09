@@ -30,7 +30,7 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
     m_tileSources = multi_threaded_map<hstring, WinRTMapData>();
     m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
     m_panel = panel;
-    
+
     // we create the context on the ui thread!
     m_renderer = std::make_unique<::TangramWinUI::Renderer>(*this);
     m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
@@ -42,41 +42,46 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
 
     m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
         {
-            {
-                std::scoped_lock mapLock(m_mapMutex);
-                if (IsShuttingDown()) return;
+            std::scoped_lock mapLock(m_mapMutex);
+            if (IsShuttingDown()) return;
 
-                // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
-                // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so we do not need to resize.
-                // When we are down-sizing can have the same padding to not call resize until we go very low, just keep the current viewport.
+            // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
+            // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so
+            // we do not need to resize. When we are down-sizing can have the same padding to not call resize until we
+            // go very low, just keep the current viewport.
 
-                int currentWidth = m_map->getViewportWidth(); 
-                int currentHeight = m_map->getViewportHeight();
+            auto width = static_cast<int>(m_panel.ActualWidth());
+            auto height = static_cast<int>(m_panel.ActualHeight());
+            auto newPixelScale = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
+            auto oldPixelScale = m_map->getPixelScale();
 
-                auto newWidth = static_cast<int>(e.NewSize().Width);
-                auto newHeight= static_cast<int>(e.NewSize().Height);
+            auto changed = false;
 
-                if (newWidth != currentWidth || newHeight != currentHeight) {
-                    // we must do it on the UI thread, where we initialized our context
-                    m_map->resize(static_cast<int>(e.NewSize().Width), static_cast<int>(e.NewSize().Height));
+            std::scoped_lock resizeLock(m_resizeMutex);
 
-                    std::scoped_lock resizeLock(m_resizeMutex);
-                    m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
-                }
+            if (m_map->getViewportWidth() != width || height != m_map->getViewportHeight()) {
+                m_newWidth = width;
+                m_newHeight = height;
+                changed = true;
             }
+
+            if (fabs(newPixelScale - oldPixelScale) >= 0.01) {
+                m_newPixelScale = newPixelScale;
+                changed = true;
+            }
+
+            if (changed) m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
         }
     }));
 
-    auto width = static_cast<int>(m_panel.ActualWidth());
-    auto height = static_cast<int>(m_panel.ActualHeight());
-    auto density = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
+    m_newWidth = static_cast<int>(m_panel.ActualWidth());
+    m_newHeight = static_cast<int>(m_panel.ActualHeight());
+    m_newPixelScale = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
 
-    m_map->setPixelScale(density);
     m_map->setupGL();
-    m_map->resize(width, height);
 
-    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(
-        DispatcherQueuePriority::Normal, DispatcherQueueHandler([this] {RenderThread(); }));
+    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(DispatcherQueuePriority::Normal,
+                                                                   DispatcherQueueHandler([this] { RenderThread(); }));
 }
 
 event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& handler) {
@@ -86,7 +91,7 @@ event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& hand
         std::scoped_lock lock(m_mapMutex);
         isLoaded = m_loaded;
     }
-    
+
     if (isLoaded)
         ScheduleOnUIThread([this]{ m_onLoaded(m_panel, *this); });
 
@@ -125,7 +130,7 @@ void MapController::UseCachedGlState(bool useCache) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return;
 
-    m_map->useCachedGlState(useCache);    
+    m_map->useCachedGlState(useCache);
 }
 
 void MapController::HandlePanGesture(float startX, float startY, float endX, float endY) {
@@ -235,8 +240,6 @@ IAsyncAction MapController::Shutdown() {
     m_map->markerRemoveAll();
     for (auto& marker : m_markers) { winrt::get_self<WinRTMarkerImpl>(marker.Value())->Invalidate(); }
     m_markers.Clear();
-
-    m_map->shutdown();
     m_map.reset();
 
     // destroy the context from the main thread!
@@ -345,7 +348,7 @@ void MapController::UpdateCameraPosition(const CameraPosition& cameraPosition, i
     if (duration > 0) { SetMapRegionState(MapRegionChangeState::ANIMATING); } else {
         SetMapRegionState(MapRegionChangeState::JUMPING);
     }
-    
+
     m_map->updateCameraPosition(update, duration / 1000.f);
 }
 
@@ -402,6 +405,16 @@ void MapController::RenderThread() {
     {
         std::scoped_lock lock(m_mapMutex);
         m_renderer->MakeActive();
+
+        std::scoped_lock resizeLock(m_resizeMutex);
+        m_map->setPixelScale(m_newPixelScale);
+        m_map->resize(m_newWidth, m_newHeight);
+        m_renderer->Render();
+        m_resizeRequestedAt = {};
+        m_newHeight = 0;
+        m_newWidth = 0;
+        m_newPixelScale = 0;
+
         m_loaded = true;
     }
 
@@ -413,14 +426,28 @@ void MapController::RenderThread() {
         const auto currentRequestId = m_renderRequestId.load();
         auto resizing = false;
 
-        {
-            std::scoped_lock resizeLock(m_resizeMutex);
+        if (m_resizeMutex.try_lock()) {
             if (m_resizeRequestedAt.has_value()) {
                 resizing = true;
-                
+
+                if (m_newWidth) {
+                    m_map->resize(m_newWidth, m_newHeight);
+                    m_newWidth = 0;
+                    m_newHeight = 0;
+                }
+
+                if (m_newPixelScale > 0.01) {
+                    m_map->setPixelScale(m_newPixelScale);
+                    m_newPixelScale = 0;
+                }
+
                 // lets give the UI N-millisec for redrawing
-                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
-                if (diff.count() > 10) m_resizeRequestedAt = {};
+                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
+
+                if (diff.count() > 10) { m_resizeRequestedAt = {}; }
+
+                m_resizeMutex.unlock();
             }
         }
 
@@ -521,7 +548,7 @@ WinRTMapData MapController::AddDataLayer(const hstring& layerName) {
     auto mapData = WinRTMapData();
     auto native = winrt::get_self<WinRTMapDataImpl>(mapData);
     native->Init(source.get(), this);
-  
+
     (void)m_tileSources.Insert(layerName, mapData);
 
     m_map->addTileSource(source);

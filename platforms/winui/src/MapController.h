@@ -169,6 +169,9 @@ private:
     EventHandler<PickResult> m_featurePickHandler;
     EventHandler<PickResult> m_labelPickHandler;
 
+    int m_newWidth{}, m_newHeight{};
+    float m_newPixelScale{};
+
     DispatcherQueueController m_fileDispatcherQueueController;
     DispatcherQueueController m_renderDispatcherQueueController;
     DispatcherQueueController m_workDispatcherQueueController;
