@@ -94,7 +94,7 @@ public:
             }
             auto& tile = m_cacheList.back().tile;
             m_cacheUsage -= tile->getMemoryUsage();
-            const auto& key = m_cacheList.back().key;
+            const auto key = m_cacheList.back().key;
             m_cacheMap.erase(key);
             m_cacheList.pop_back();
             --m_cacheCounter[key.first];
