@@ -31,10 +31,14 @@ uint64_t MapData::RemoveGeoJsonById(array_view<uint64_t const>& ids, bool genera
 void MapData::IsVisible(bool isVisible) {
     if (IsInvalid()) return;
     std::scoped_lock mapLock(m_controller->Mutex());
-    if(IsInvalid()) return;
+    if (IsInvalid()) return;
 
     m_source->setVisible(isVisible);
+
+    if (isVisible)
+        m_controller->GetMap().imitateMove();
 }
+
 
 bool MapData::IsVisible() const {
     if (IsInvalid()) return false;
