@@ -31,7 +31,7 @@ add_compile_options("/EHsc")
 
 find_package(CURL REQUIRED)
 
-set(NUGET_PACKAGES "Microsoft.Windows.CppWinRT_2.0.240405.15;Microsoft.Windows.SDK.BuildTools_10.0.26100.1;Microsoft.WindowsAppSDK_1.6.240829007")
+set(NUGET_PACKAGES "Microsoft.Windows.CppWinRT_2.0.240405.15;Microsoft.Windows.SDK.BuildTools_10.0.26100.1;Microsoft.WindowsAppSDK_1.5.240802000")
 
 if(NOT DEFINED ANGLE_NUGET_PACKAGE)
 	if(NOT DEFINED ANGLE_INCLUDE_DIR)
