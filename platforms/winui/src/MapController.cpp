@@ -446,9 +446,9 @@ void MapController::RenderThread() {
                     std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
 
                 if (diff.count() > 10) { m_resizeRequestedAt = {}; }
-
-                m_resizeMutex.unlock();
             }
+
+            m_resizeMutex.unlock();
         }
 
         if(lastThreadRedrawId != currentRequestId || resizing) {
