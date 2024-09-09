@@ -496,6 +496,7 @@ int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoo
 
     Tangram::SceneOptions options{};
     options.numTileWorkers = 2;
+    options.memoryTileCacheSize = Tangram::SceneOptions::DEFAULT_CACHE_SIZE * 2;
     options.url = Tangram::Url(to_string(resourceRoot));
     options.yaml = to_string(yaml);
     return m_map->loadScene(std::move(options), loadAsync);

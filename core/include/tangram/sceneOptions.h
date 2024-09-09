@@ -21,6 +21,8 @@ struct SceneUpdate {
 
 class SceneOptions {
 public:
+    static constexpr size_t DEFAULT_CACHE_SIZE = 16 * (1024 * 1024);
+
     explicit SceneOptions(const Url& _url, bool _useScenePosition = false,
                           const std::vector<SceneUpdate>& _updates = {})
         : url(_url), updates(_updates),
@@ -56,11 +58,7 @@ public:
     uint32_t numTileWorkers = 2;
 
     /// 16MB default in-memory DataSource cache
-    size_t memoryTileCacheSize = CACHE_SIZE;
-
-private:
-    static constexpr size_t CACHE_SIZE = 16 * (1024 * 1024);
-
+    size_t memoryTileCacheSize = DEFAULT_CACHE_SIZE;
 };
 
 }
