@@ -31,6 +31,10 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
     m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
     m_panel = panel;
 
+    // when we increase the DPI of the display, above 1.5 it just looks very blurry with raster tiles,
+    // so we limit the pixel scale
+    constexpr static float MAX_PIXEL_SCALE = 1.5;
+
     // we create the context on the ui thread!
     m_renderer = std::make_unique<::TangramWinUI::Renderer>(*this);
     m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
@@ -52,7 +56,7 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
 
             auto width = static_cast<int>(m_panel.ActualWidth());
             auto height = static_cast<int>(m_panel.ActualHeight());
-            auto newPixelScale = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
+            auto newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
             auto oldPixelScale = m_map->getPixelScale();
 
             auto changed = false;
@@ -76,7 +80,7 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
 
     m_newWidth = static_cast<int>(m_panel.ActualWidth());
     m_newHeight = static_cast<int>(m_panel.ActualHeight());
-    m_newPixelScale = static_cast<float>(m_panel.XamlRoot().RasterizationScale());
+    m_newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
 
     m_map->setupGL();
 
@@ -444,7 +448,7 @@ void MapController::RenderThread() {
                 auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
 
-                if (diff.count() > 10) { m_resizeRequestedAt = {}; }
+                if (diff.count() > 15) { m_resizeRequestedAt = {}; }
             }
 
             m_resizeMutex.unlock();
