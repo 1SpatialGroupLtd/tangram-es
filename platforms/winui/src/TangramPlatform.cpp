@@ -27,10 +27,17 @@ void logMsg(const char* fmt, ...) {
 
 namespace TangramWinUI {
 
-TangramPlatform::TangramPlatform(winrt::TangramWinUI::implementation::MapController&controller, Tangram::UrlClient::Options urlClientOptions)
+TangramPlatform::TangramPlatform(winrt::TangramWinUI::implementation::MapController& controller,
+                                 Tangram::UrlClient::Options urlClientOptions, winrt::array_view<const winrt::hstring>& fontPaths)
     : m_controller(controller), 
-      m_urlClient(std::make_unique<Tangram::UrlClient>(urlClientOptions))
-{}
+      m_urlClient(std::make_unique<Tangram::UrlClient>(urlClientOptions)) {
+
+    std::vector<Tangram::FontSourceHandle> fonts;
+    fonts.reserve(fontPaths.size());
+    for (auto& path : fontPaths) { fonts.emplace_back(Tangram::FontSourceHandle(Tangram::Url(to_string(path)))); }
+    m_fontSourceHandles = std::move(fonts);
+    
+}
 
 TangramPlatform::~TangramPlatform() { shutdown(); }
 
@@ -43,7 +50,9 @@ void TangramPlatform::requestRender() const {
     m_controller.RequestRender();
 }
 
-std::vector<Tangram::FontSourceHandle> TangramPlatform::systemFontFallbacksHandle() const { return {}; }
+std::vector<Tangram::FontSourceHandle> TangramPlatform::systemFontFallbacksHandle() const {
+    return m_fontSourceHandles;
+}
 
 bool TangramPlatform::startUrlRequestImpl(const Tangram::Url& _url, const Tangram::UrlRequestHandle _request,
                                           UrlRequestId& _id) {
@@ -97,4 +106,5 @@ bool TangramPlatform::startUrlRequestImpl(const Tangram::Url& _url, const Tangra
 void TangramPlatform::cancelUrlRequestImpl(const UrlRequestId _id) {
     if (m_urlClient) { m_urlClient->cancelRequest(_id); }
 }
+
 } // namespace TangramWinUI

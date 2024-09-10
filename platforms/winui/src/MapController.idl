@@ -12,7 +12,7 @@ namespace TangramWinUI {
 runtimeclass MapController
 {
     MapController();
-    MapController(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
+    MapController(Microsoft.UI.Xaml.Controls.SwapChainPanel panel, String[] fontPaths);
     event Windows.Foundation.EventHandler<UInt32> OnSceneLoaded;    
     event Windows.Foundation.EventHandler<MapController> OnLoaded;
     event Windows.Foundation.EventHandler<Int32> OnViewComplete; 
@@ -65,7 +65,6 @@ runtimeclass MapController
     void SetMarkerPickHandler(Windows.Foundation.EventHandler<PickResult> handler);
     void SetFeaturePickHandler(Windows.Foundation.EventHandler<PickResult> handler);
     void SetLabelPickHandler(Windows.Foundation.EventHandler<PickResult> handler);
-
     void SetMapRegionStateIdle();
 }
 

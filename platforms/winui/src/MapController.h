@@ -31,7 +31,7 @@ using winrt::Microsoft::UI::Dispatching::DispatcherQueue;
 namespace winrt::TangramWinUI::implementation {
 struct MapController : public MapControllerT<MapController> {
     MapController();
-    MapController(SwapChainPanel panel);
+    MapController(SwapChainPanel panel, array_view<const hstring>& fontPaths);
     ~MapController() override;
 
     event_token OnLoaded(EventHandler<WinRTMapController> const& handler);
@@ -129,6 +129,8 @@ public:
                 action();
             }));
     }
+
+    void SetFonts(array_view<const hstring> fontPaths);
 
     template <typename Action> void ScheduleOnWorkThread(Action action) {
         if (IsShuttingDown()) return;

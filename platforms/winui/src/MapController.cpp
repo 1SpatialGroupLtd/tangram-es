@@ -26,7 +26,7 @@ MapController::MapController()
       m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()) {
 }
 
-MapController::MapController(SwapChainPanel panel) : MapController() {
+MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fontPaths) : MapController() {
     m_tileSources = multi_threaded_map<hstring, WinRTMapData>();
     m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
     m_panel = panel;
@@ -35,7 +35,7 @@ MapController::MapController(SwapChainPanel panel) : MapController() {
     m_renderer = std::make_unique<::TangramWinUI::Renderer>(*this);
     m_uiDispatcherQueue = DispatcherQueue::GetForCurrentThread();
     assert(m_uiDispatcherQueue);
-    auto platform = new ::TangramWinUI::TangramPlatform(*this, Tangram::UrlClient::Options{});
+    auto platform = new ::TangramWinUI::TangramPlatform(*this, Tangram::UrlClient::Options{}, fontPaths);
     m_map = std::make_unique<Tangram::Map>(std::unique_ptr<::Tangram::Platform>(platform));
     m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
     m_renderer->InitRendererOnUiThread(m_panel);
