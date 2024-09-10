@@ -118,10 +118,14 @@ void Renderer::Render() {
     eglPrepareSwapBuffersANGLE(m_display, m_surface);
 
     {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
-        m_lastTime = now;
-        state = map.update(elapsed_seconds);
+        {
+            std::scoped_lock lock(m_controller->Mutex());
+            auto now = std::chrono::high_resolution_clock::now();
+            m_lastTime = now;
+            float elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
+            state = map.update(elapsed_seconds);
+        }
+
         willCaptureFrame = m_captureFrameCallback && state.viewComplete();
 
         // only one thread can access the graphics layer exclusively, limitation we need to live with

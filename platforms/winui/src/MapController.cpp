@@ -409,7 +409,6 @@ void MapController::RenderThread() {
         std::scoped_lock resizeLock(m_resizeMutex);
         m_map->setPixelScale(m_newPixelScale);
         m_map->resize(m_newWidth, m_newHeight);
-        m_renderer->Render();
         m_resizeRequestedAt = {};
         m_newHeight = 0;
         m_newWidth = 0;
