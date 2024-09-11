@@ -24,6 +24,7 @@ public:
     void InitRendererOnUiThread(SwapChainPanel& swapChainPanel);
     void MakeActive();
     void Destroy();
+    bool ResizeAndSetPixelScale(int width, int height, float pixelScale);
 private:
     winrt::TangramWinUI::implementation::MapController* m_controller;    
     EGLDisplay m_display{};

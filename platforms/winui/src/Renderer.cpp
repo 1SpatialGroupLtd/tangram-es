@@ -104,6 +104,24 @@ void Renderer::Destroy() {
     m_controller = nullptr;
 }
 
+bool Renderer::ResizeAndSetPixelScale(int width, int height, float pixelScale) {
+    std::scoped_lock globalLock(s_globalRenderMutex);
+    auto& map = m_controller->GetMap();
+    bool changed = false;
+
+    if(map.getViewportWidth() != width || height != map.getViewportHeight()) {
+        map.resize(width, height);
+        changed = true;
+    }
+
+    if(map.getPixelScale() != pixelScale) {
+        map.setPixelScale(pixelScale);
+        changed = true;
+    }
+
+    return changed;
+}
+
 void Renderer::CaptureFrame(CaptureCallback callback) {
     m_captureFrameCallback = std::move(callback);
     m_controller->RequestRender();
