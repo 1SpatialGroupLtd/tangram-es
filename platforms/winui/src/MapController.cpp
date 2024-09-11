@@ -44,37 +44,26 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
     m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
     m_renderer->InitRendererOnUiThread(m_panel);
 
-    m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs& e) {
-        {
-            std::scoped_lock mapLock(m_mapMutex);
-            if (IsShuttingDown()) return;
+    m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs&) {
+        if (IsShuttingDown()) return;
 
-            // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
-            // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so
-            // we do not need to resize. When we are down-sizing can have the same padding to not call resize until we
-            // go very low, just keep the current viewport.
+        // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
+        // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so
+        // we do not need to resize. When we are down-sizing can have the same padding to not call resize until we
+        // go very low, just keep the current viewport.
 
-            auto width = static_cast<int>(m_panel.ActualWidth());
-            auto height = static_cast<int>(m_panel.ActualHeight());
-            auto newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
-            auto oldPixelScale = m_map->getPixelScale();
+        auto width = static_cast<int>(m_panel.ActualWidth());
+        auto height = static_cast<int>(m_panel.ActualHeight());
+        auto newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
+        auto oldPixelScale = m_map->getPixelScale();
 
-            auto changed = false;
-
+        if (m_map->getViewportWidth() != width || height != m_map->getViewportHeight() ||
+            fabs(newPixelScale - oldPixelScale) >= 0.01) {
             std::scoped_lock resizeLock(m_resizeMutex);
-
-            if (m_map->getViewportWidth() != width || height != m_map->getViewportHeight()) {
-                m_newWidth = width;
-                m_newHeight = height;
-                changed = true;
-            }
-
-            if (fabs(newPixelScale - oldPixelScale) >= 0.01) {
-                m_newPixelScale = newPixelScale;
-                changed = true;
-            }
-
-            if (changed) m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
+            m_newWidth = width;
+            m_newHeight = height;
+            m_newPixelScale = newPixelScale;
+            m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
         }
     }));
 
@@ -407,12 +396,11 @@ void MapController::SetMapRegionState(MapRegionChangeState state) {
 
 void MapController::RenderThread() {
     {
-        std::scoped_lock lock(m_mapMutex);
+        std::scoped_lock mapLock(m_mapMutex);
         m_renderer->MakeActive();
 
         std::scoped_lock resizeLock(m_resizeMutex);
-        m_map->setPixelScale(m_newPixelScale);
-        m_map->resize(m_newWidth, m_newHeight);
+        m_renderer->ResizeAndSetPixelScale(m_newWidth, m_newHeight, m_newPixelScale);
         m_resizeRequestedAt = {};
         m_newHeight = 0;
         m_newWidth = 0;
@@ -432,23 +420,16 @@ void MapController::RenderThread() {
         if (m_resizeMutex.try_lock()) {
             if (m_resizeRequestedAt.has_value()) {
                 resizing = true;
-
-                if (m_newWidth) {
-                    m_map->resize(m_newWidth, m_newHeight);
+                m_renderer->ResizeAndSetPixelScale(m_newWidth, m_newHeight, m_newPixelScale);
+             
+                // lets give the UI N-millisec for redrawing
+                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
+                if (diff.count() > 15) {
+                    m_resizeRequestedAt = {};
                     m_newWidth = 0;
                     m_newHeight = 0;
-                }
-
-                if (m_newPixelScale > 0.01) {
-                    m_map->setPixelScale(m_newPixelScale);
                     m_newPixelScale = 0;
                 }
-
-                // lets give the UI N-millisec for redrawing
-                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
-
-                if (diff.count() > 15) { m_resizeRequestedAt = {}; }
             }
 
             m_resizeMutex.unlock();
