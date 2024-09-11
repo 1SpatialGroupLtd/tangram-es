@@ -105,7 +105,6 @@ void Renderer::Destroy() {
 }
 
 bool Renderer::ResizeAndSetPixelScale(int width, int height, float pixelScale) {
-    std::scoped_lock globalLock(s_globalRenderMutex);
     auto& map = m_controller->GetMap();
     bool changed = false;
 
