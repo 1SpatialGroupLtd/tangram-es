@@ -26,11 +26,11 @@ MapController::MapController()
       m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()) {
 }
 
-MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fontPaths) : MapController() {
+MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fontPaths, const hstring& assetPath) : MapController() {
     m_tileSources = multi_threaded_map<hstring, WinRTMapData>();
     m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
     m_panel = panel;
-
+    m_assetPath = to_string(assetPath);
     // when we increase the DPI of the display, above 1.5 it just looks very blurry with raster tiles,
     // so we limit the pixel scale
     constexpr static float MAX_PIXEL_SCALE = 1.5;
@@ -504,12 +504,13 @@ hstring MapController::GetTileSourceUrl(const hstring& sourceName) {
 int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return -1;
-
+    
     Tangram::SceneOptions options{};
     options.numTileWorkers = 2;
     options.memoryTileCacheSize = Tangram::SceneOptions::DEFAULT_CACHE_SIZE * 2;
     options.url = Tangram::Url(to_string(resourceRoot));
     options.yaml = to_string(yaml);
+    m_resourcesPath = to_string(resourceRoot);
     return m_map->loadScene(std::move(options), loadAsync);
 }
 

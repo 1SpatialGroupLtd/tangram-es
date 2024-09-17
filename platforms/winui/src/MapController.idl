@@ -12,7 +12,7 @@ namespace TangramWinUI {
 runtimeclass MapController
 {
     MapController();
-    MapController(Microsoft.UI.Xaml.Controls.SwapChainPanel panel, String[] fontPaths);
+    MapController(Microsoft.UI.Xaml.Controls.SwapChainPanel panel, String[] fontPaths, String assetPath);
     event Windows.Foundation.EventHandler<UInt32> OnSceneLoaded;    
     event Windows.Foundation.EventHandler<MapController> OnLoaded;
     event Windows.Foundation.EventHandler<Int32> OnViewComplete; 

@@ -26,6 +26,7 @@ private:
     winrt::TangramWinUI::implementation::MapController& m_controller;
     std::unique_ptr<Tangram::UrlClient> m_urlClient;
     std::vector<Tangram::FontSourceHandle> m_fontSourceHandles{};
+    std::string m_assetsPath;
 };
 
 } // namespace Tangram

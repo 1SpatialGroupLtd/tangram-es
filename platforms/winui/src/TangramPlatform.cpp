@@ -5,6 +5,7 @@
 #include <fstream>
 #include <utility>
 #include "MapController.h"
+#include <filesystem>
 
 /* global Tangram methods */
 namespace Tangram {
@@ -73,12 +74,32 @@ bool TangramPlatform::startUrlRequestImpl(const Tangram::Url& _url, const Tangra
 
     m_controller.ScheduleOnFileThread([this, _request, localPath = _url.string()] {
         UrlResponse resp;
+        std::filesystem::path path(localPath);
 
+        {
+            std::ifstream f(path);
+            if (!f.good()) 
+            {
+                path = path.filename();
+            }
+        }
+
+        if(localPath.compare(0, 9, "asset:///") == 0) {
+            path = m_controller.GetAssetPath() + "/" + localPath.substr(9);
+        }
+        else if(localPath.compare(0, 8, "file:///") == 0) {
+            path = localPath.substr(8);
+        }
+
+        if(path.is_relative()) {
+            path = m_controller.GetResourcesPath() / path;
+        }
+        
         // Open file
-        std::ifstream infile(localPath, std::ios_base::binary); // and since you want bytes rather than
+        std::ifstream infile(path, std::ios_base::binary); // and since you want bytes rather than
 
         if (!infile.good()) {
-            LOG("File not found: ", localPath.c_str());
+            LOGE("File not found: ", localPath.c_str());
             resp.error = "File not found";
             onUrlResponse(_request, std::move(resp));
             return;
