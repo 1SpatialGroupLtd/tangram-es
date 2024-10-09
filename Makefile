@@ -182,22 +182,22 @@ cmake-osx:
 	cmake -H. -B${OSX_BUILD_DIR} ${OSX_CMAKE_PARAMS}
 
 xcode: cmake-xcode
-	xcodebuild -target tangram -project ${OSX_XCODE_BUILD_DIR}/tangram.xcodeproj -configuration ${BUILD_TYPE} ${XCPRETTY}
+	xcodebuild -target tangram -project ${OSX_XCODE_BUILD_DIR}/tangram.xcodeproj -configuration ${BUILD_TYPE} 
 
 cmake-xcode:
 	cmake -H. -B${OSX_XCODE_BUILD_DIR} ${OSX_XCODE_CMAKE_PARAMS}
 
 ios: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo -configuration ${BUILD_TYPE} -sdk iphoneos ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} 
 
 ios-swift: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemoSwift -configuration ${BUILD_TYPE} -sdk iphoneos ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemoSwift -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-swift-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemoSwift -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemoSwift -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} 
 
 ios-xcode: cmake-ios
 	open platforms/ios/Tangram.xcworkspace
@@ -214,10 +214,10 @@ cmake-ios:
 	cmake -H. -B${IOS_BUILD_DIR} ${IOS_CMAKE_PARAMS}
 
 ios-framework: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphoneos ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-framework-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphonesimulator ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphonesimulator 
 
 ios-xcframework: ios-framework ios-framework-sim
 	rm -rf ${IOS_BUILD_DIR}/${BUILD_TYPE}/TangramMap.xcframework
@@ -227,16 +227,16 @@ ios-xcframework: ios-framework ios-framework-sim
 		-output ${IOS_BUILD_DIR}/${BUILD_TYPE}/TangramMap.xcframework
 
 ios-static: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo-static -configuration ${BUILD_TYPE} -sdk iphoneos ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo-static -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-static-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo-static -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo-static -configuration ${BUILD_TYPE} -sdk iphonesimulator -arch ${IOS_SIM_ARCH} 
 
 ios-static-lib: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme tangram-static -configuration ${BUILD_TYPE} -sdk iphoneos ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme tangram-static -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-static-lib-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme tangram-static -configuration ${BUILD_TYPE} -sdk iphonesimulator ${XCPRETTY}
+	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme tangram-static -configuration ${BUILD_TYPE} -sdk iphonesimulator 
 
 ios-static-xcframework: ios-static-lib ios-static-lib-sim
 	rm -rf ${IOS_BUILD_DIR}/${BUILD_TYPE}/TangramMapStatic.xcframework
