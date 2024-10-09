@@ -214,10 +214,10 @@ cmake-ios:
 	cmake -H. -B${IOS_BUILD_DIR} ${IOS_CMAKE_PARAMS}
 
 ios-framework: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphoneos 
+	xcodebuild ONLY_ACTIVE_ARCH=YES ARCHS=arm64 -workspace platforms/ios/Tangram.xcworkspace -destination generic/platform=iOS -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphoneos 
 
 ios-framework-sim: cmake-ios
-	xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphonesimulator 
+	xcodebuild  ONLY_ACTIVE_ARCH=YES ARCHS=x86_64  -workspace platforms/ios/Tangram.xcworkspace -destination generic/platform="iOS Simulator"  -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphonesimulator 
 
 ios-xcframework: ios-framework ios-framework-sim
 	rm -rf ${IOS_BUILD_DIR}/${BUILD_TYPE}/TangramMap.xcframework
