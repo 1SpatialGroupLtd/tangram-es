@@ -4,8 +4,12 @@ group = 'com.mapzen.tangram'
 version = '0.17.2-SNAPSHOT'
 
 android {
-  compileSdk 34
+  compileSdk 35
   ndkVersion "28.0.12433566"
+
+  buildFeatures {
+    buildConfig true
+  }
 
   // Specific ABI targets can be chosen with the 'abis' property as a comma-separated list of ABIs.
   // From the command line, add '-Ptangram.abis=armeabi-v7a,x86,...' to only build those ABIs.
@@ -17,7 +21,7 @@ android {
 
   defaultConfig {
     minSdkVersion 24
-    targetSdkVersion 34
+    targetSdkVersion 35
     consumerProguardFiles 'tangram-proguard-rules.txt'
     buildConfigField 'String', 'TAG', '"Tangram"'
     externalNativeBuild {
@@ -49,7 +53,7 @@ android {
           arguments += '-DCMAKE_C_COMPILER_LAUNCHER=ccache'
         }
         if (abi == 'all') {
-          abiFilters 'arm64-v8a', 'x86_64'
+          abiFilters 'arm64-v8a'
         } else {
           abiFilters abi.split(',')
         }
@@ -79,9 +83,6 @@ android {
   }
 
   namespace 'com.mapzen.tangram'
-  buildFeatures {
-    buildConfig true
-  }
 }
 
 dependencies {

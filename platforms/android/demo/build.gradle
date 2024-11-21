@@ -1,13 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-  compileSdk 34
+  buildFeatures {
+    buildConfig true
+    compileSdkVersion 35
+  }
+}
 
+android {
   def apiKey = project.hasProperty('nextzenApiKey') ? nextzenApiKey : System.getenv('NEXTZEN_API_KEY')
 
   defaultConfig {
     minSdkVersion 24
-    targetSdkVersion 34
+    targetSdkVersion 35
     buildConfigField 'String', 'NEXTZEN_API_KEY', '"' + apiKey + '"'
   }
 
