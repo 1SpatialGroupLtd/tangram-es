@@ -79,6 +79,9 @@ android {
   }
 
   namespace 'com.mapzen.tangram'
+  buildFeatures {
+    buildConfig true
+  }
 }
 
 dependencies {
