@@ -4,7 +4,7 @@ group = 'com.mapzen.tangram'
 version = '0.17.2-SNAPSHOT'
 
 android {
-  compileSdk 34
+  compileSdk 35
   ndkVersion "26.3.11579264"
 
   // Specific ABI targets can be chosen with the 'abis' property as a comma-separated list of ABIs.
@@ -17,7 +17,7 @@ android {
 
   defaultConfig {
     minSdkVersion 24
-    targetSdkVersion 34
+    targetSdkVersion 35
     consumerProguardFiles 'tangram-proguard-rules.txt'
     buildConfigField 'String', 'TAG', '"Tangram"'
     externalNativeBuild {
