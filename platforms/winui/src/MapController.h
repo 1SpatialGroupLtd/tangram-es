@@ -84,7 +84,6 @@ struct MapController : public MapControllerT<MapController> {
     void SetLayer(const hstring& layerName, const hstring& style);
     bool SetTileSourceUrl(const hstring& sourceName, const hstring& url);
     hstring GetTileSourceUrl(const hstring& sourceName);
-    bool SetTileSourceUrl(const hstring& sourceName, const hstring& url);
     bool SetTileSourceVisibility(const hstring& sourceName, bool visibility);
     bool GetTileSourceVisibility(const hstring& sourceName);
     int LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync);
