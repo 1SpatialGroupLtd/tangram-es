@@ -489,16 +489,29 @@ void MapController::SetLayer(const hstring& layerName, const hstring& style) {
     m_map->setLayer(to_string(layerName), to_string(style));
 }
 
-void MapController::SetTileSourceUrl(const hstring& sourceName, const hstring& url) {
+bool MapController::SetTileSourceUrl(const hstring& sourceName, const hstring& url) {
     std::scoped_lock mapLock(m_mapMutex);
-    if (IsShuttingDown()) return;
-    m_map->setTileSourceUrl(to_string(sourceName), to_string(url));
+    if (IsShuttingDown()) return false;
+    return m_map->setTileSourceUrl(to_string(sourceName), to_string(url));
 }
 
 hstring MapController::GetTileSourceUrl(const hstring& sourceName) {
     std::scoped_lock mapLock(m_mapMutex);
     if (IsShuttingDown()) return {};
     return to_hstring(m_map->getTileSourceUrl(to_string(sourceName)));
+}
+
+bool MapController::GetTileSourceVisibility(const hstring& sourceName) {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return false;
+
+    return m_map->getTileSourceVisibility(to_string(sourceName));
+}
+
+bool MapController::SetTileSourceVisibility(const hstring& sourceName, bool visibility) {
+    std::scoped_lock mapLock(m_mapMutex);
+    if (IsShuttingDown()) return false;
+    return m_map->setTileSourceVisibility(to_string(sourceName), visibility);
 }
 
 int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync) {

@@ -112,8 +112,7 @@ bool TangramPlatform::startUrlRequestImpl(const Tangram::Url& _url, const Tangra
         std::vector<char> buffer;
 
         // reserve the space required for the file's size
-        buffer.reserve(length);
-        for (int i = 0; i < length; i++) buffer.push_back(0);
+        buffer.resize(length);
 
         // Read file
         infile.read(buffer.data(), length);
