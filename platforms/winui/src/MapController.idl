@@ -44,8 +44,10 @@ runtimeclass MapController
     Windows.Foundation.Point LngLatToScreenPosition(Double lng, Double lat, Boolean clipToViewPort);
     void CaptureFrame(Windows.Foundation.EventHandler<Windows.Graphics.Imaging.SoftwareBitmap> callback);
     void SetLayer(String layerName, String style);
-    void SetTileSourceUrl(String sourceName, String url);
+    Boolean SetTileSourceUrl(String sourceName, String url);
     String GetTileSourceUrl(String sourceName);
+    Boolean SetTileSourceVisibility(String sourceName, Boolean visibility);
+    Boolean GetTileSourceVisibility(String sourceName);
     Int32 LoadSceneYaml(String yaml, String resourceRoot, Boolean loadAsync);
     Boolean LayerExists(String layerName);
     MapData AddDataLayer(String layerName);

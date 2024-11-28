@@ -82,8 +82,11 @@ struct MapController : public MapControllerT<MapController> {
     LngLat ScreenPositionToLngLat(double x, double y);
     Point LngLatToScreenPosition(double lng, double lat, bool clipToViewPort);
     void SetLayer(const hstring& layerName, const hstring& style);
-    void SetTileSourceUrl(const hstring& sourceName, const hstring& url);
+    bool SetTileSourceUrl(const hstring& sourceName, const hstring& url);
     hstring GetTileSourceUrl(const hstring& sourceName);
+    bool SetTileSourceUrl(const hstring& sourceName, const hstring& url);
+    bool SetTileSourceVisibility(const hstring& sourceName, bool visibility);
+    bool GetTileSourceVisibility(const hstring& sourceName);
     int LoadSceneYaml(const hstring& yaml, const hstring& resourceRoot, bool loadAsync);
     bool LayerExists(const hstring& layerName);
     WinRTMapData AddDataLayer(const hstring& layerName);
