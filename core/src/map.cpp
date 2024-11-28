@@ -1051,7 +1051,10 @@ bool Map::setTileSourceVisibility(const std::string& sourceName, bool isVisible)
 std::string Map::getTileSourceUrl(const std::string &sourceName) {
     for (const auto &it: impl->scene->tileSources()) {
         if (it->name() != sourceName) continue;
-        if (!it->getSources()->next) return {};
+        const auto sources = it->getSources();
+        if(!sources) return {};
+
+        if (!sources->next) return {};
         auto source = it->getSources()->next.get();
 
         if (auto networkDataSource = dynamic_cast<NetworkDataSource *>(source)) {
@@ -1066,10 +1069,11 @@ bool Map::setTileSourceUrl(const std::string& sourceName, const std::string& url
     for (const auto& it : impl->scene->tileSources()) {
 
         if (it->name() != sourceName) continue;
+        const auto sources = it->getSources();
+        if(!sources) return false;
+        if(!it->getSources()->next) return false;
 
-        if(!it->getSources()->next) return false;;
-
-        auto source = it->getSources()->next.get();
+        auto source = sources->next.get();
 
         if(auto networkDataSource = dynamic_cast<NetworkDataSource *>(source)) {
             networkDataSource->setUrlTemplate(url);
