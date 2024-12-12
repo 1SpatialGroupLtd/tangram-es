@@ -28,7 +28,8 @@ android {
       cmake {
         targets 'tangram'
         arguments '-DTANGRAM_PLATFORM=android',
-                  '-DANDROID_STL=c++_shared'
+                  '-DANDROID_STL=c++_static', // use statically linked STL to avoid incompatibilities with older versions of libc++_shared.so
+                  '-DCMAKE_CXX_STANDARD=14'
         cppFlags '-std=c++14',
                  '-fvisibility=hidden', // export only JNIEXPORT
                  '-pedantic',
