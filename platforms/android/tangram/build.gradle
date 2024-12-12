@@ -5,7 +5,11 @@ version = '0.17.2-SNAPSHOT'
 
 android {
   compileSdk 35
-  ndkVersion "26.3.11579264"
+  ndkVersion "28.0.12433566"
+
+  buildFeatures {
+    buildConfig true
+  }
 
   // Specific ABI targets can be chosen with the 'abis' property as a comma-separated list of ABIs.
   // From the command line, add '-Ptangram.abis=armeabi-v7a,x86,...' to only build those ABIs.
@@ -24,7 +28,8 @@ android {
       cmake {
         targets 'tangram'
         arguments '-DTANGRAM_PLATFORM=android',
-                  '-DANDROID_STL=c++_shared'
+                  '-DANDROID_STL=c++_static', // use statically linked STL to avoid incompatibilities with older versions of libc++_shared.so
+                  '-DCMAKE_CXX_STANDARD=14'
         cppFlags '-std=c++14',
                  '-fvisibility=hidden', // export only JNIEXPORT
                  '-pedantic',
@@ -79,9 +84,6 @@ android {
   }
 
   namespace 'com.mapzen.tangram'
-  buildFeatures {
-    buildConfig true
-  }
 }
 
 dependencies {

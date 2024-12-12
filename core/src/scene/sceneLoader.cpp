@@ -41,7 +41,7 @@
 #include <vector>
 
 using YAML::Node;
-using YAML::NodeType;
+using NodeTypeEnum = YAML::NodeType::value;
 using YAML::BadConversion;
 
 #define LOGNode(fmt, node, ...) LOGW(fmt ":\n'%s'\n", ## __VA_ARGS__, Dump(node).c_str())
@@ -84,7 +84,7 @@ void createGlobalRefs(std::vector<std::pair<YamlPath, YamlPath>>& _globalRefs,
                       const Node& _node, YamlPathBuffer& _path) {
 
     switch(_node.Type()) {
-    case NodeType::Scalar: {
+    case NodeTypeEnum::Scalar: {
         const auto& value = _node.Scalar();
         if (value.length() > 7 && value.compare(0, 7, GLOBAL_PREFIX) == 0) {
             _globalRefs.emplace_back(_path.toYamlPath(),
@@ -92,7 +92,7 @@ void createGlobalRefs(std::vector<std::pair<YamlPath, YamlPath>>& _globalRefs,
         }
     }
         break;
-    case NodeType::Sequence: {
+    case NodeTypeEnum::Sequence: {
         _path.pushSequence();
         for (const auto& entry : _node) {
             createGlobalRefs(_globalRefs, entry, _path);
@@ -101,7 +101,7 @@ void createGlobalRefs(std::vector<std::pair<YamlPath, YamlPath>>& _globalRefs,
         _path.pop();
     }
         break;
-    case NodeType::Map:
+    case NodeTypeEnum::Map:
         for (const auto& entry : _node) {
             _path.pushMap(&entry.first.Scalar());
             createGlobalRefs(_globalRefs, entry.second, _path);
@@ -1106,7 +1106,7 @@ void SceneLoader::parseStyleParams(const Node& _params, const std::string& _pref
         }
 
         switch (value.Type()) {
-        case NodeType::Scalar: {
+        case NodeTypeEnum::Scalar: {
             const std::string& val = value.Scalar();
 
             if (val.compare(0, 8, "function") == 0) {
@@ -1118,7 +1118,7 @@ void SceneLoader::parseStyleParams(const Node& _params, const std::string& _pref
             }
             break;
         }
-        case NodeType::Sequence: {
+        case NodeTypeEnum::Sequence: {
             if (value[0].IsSequence()) {
                 auto styleKey = StyleParam::getKey(key);
                 if (styleKey != StyleParamKey::none) {
@@ -1151,13 +1151,13 @@ void SceneLoader::parseStyleParams(const Node& _params, const std::string& _pref
             }
             break;
         }
-        case NodeType::Map: {
+        case NodeTypeEnum::Map: {
             // NB: Flatten parameter map
             parseStyleParams(value, key, _stops, _functions, _out);
 
             break;
         }
-        case NodeType::Null: {
+        case NodeTypeEnum::Null: {
             // Handles the case, when null style param value is used to unset a merged style param
             _out.emplace_back(StyleParam::getKey(key));
             break;
@@ -1369,14 +1369,14 @@ void SceneLoader::loadMaterial(const Node& _matNode, Material& _material, Style&
 
     auto parseMaterialVec = [](const Node& prop) -> glm::vec4 {
         switch (prop.Type()) {
-        case NodeType::Sequence: {
+        case NodeTypeEnum::Sequence: {
             glm::vec4 vec;
             if (YamlUtil::parseVec<glm::vec4>(prop, vec)) {
                 return vec;
             }
             break;
         }
-        case NodeType::Scalar: {
+        case NodeTypeEnum::Scalar: {
             double value;
             if (YamlUtil::getDouble(prop, value, false)) {
                 return glm::vec4(value, value, value, 1.0);
@@ -1385,7 +1385,7 @@ void SceneLoader::loadMaterial(const Node& _matNode, Material& _material, Style&
             }
             break;
         }
-        case NodeType::Map:
+        case NodeTypeEnum::Map:
             // Handled as texture
             break;
         default:
@@ -1611,7 +1611,7 @@ void printFilters(const SceneLayer& layer, int indent){
 
 Filter SceneLoader::generateFilter(SceneFunctions& _functions, const Node& _filter) {
     switch (_filter.Type()) {
-    case NodeType::Scalar: {
+    case NodeTypeEnum::Scalar: {
 
         const std::string& val = _filter.Scalar();
         if (val.compare(0, 8, "function") == 0) {
@@ -1619,10 +1619,10 @@ Filter SceneLoader::generateFilter(SceneFunctions& _functions, const Node& _filt
         }
         return Filter();
     }
-    case NodeType::Sequence: {
+    case NodeTypeEnum::Sequence: {
         return generateAnyFilter(_functions, _filter);
     }
-    case NodeType::Map: {
+    case NodeTypeEnum::Map: {
         std::vector<Filter> filters;
         for (const auto& filtItr : _filter) {
             const std::string& key = filtItr.first.Scalar();
@@ -1705,7 +1705,7 @@ Filter SceneLoader::generateNoneFilter(SceneFunctions& _functions, const Node& _
 
 Filter SceneLoader::generatePredicate(const Node& _node, std::string _key) {
     switch (_node.Type()) {
-    case NodeType::Scalar: {
+    case NodeTypeEnum::Scalar: {
         if (_node.Tag() == "tag:yaml.org,2002:str") {
             // Node was explicitly tagged with '!!str' or the canonical tag
             // 'tag:yaml.org,2002:str' yaml-cpp normalizes the tag value to the
@@ -1723,7 +1723,7 @@ Filter SceneLoader::generatePredicate(const Node& _node, std::string _key) {
         const std::string& value = _node.Scalar();
         return Filter::MatchEquality(_key, { Value(std::move(value)) });
     }
-    case NodeType::Sequence: {
+    case NodeTypeEnum::Sequence: {
         std::vector<Value> values;
         for (const auto& valItr : _node) {
             double number;
@@ -1736,7 +1736,7 @@ Filter SceneLoader::generatePredicate(const Node& _node, std::string _key) {
         }
         return Filter::MatchEquality(_key, std::move(values));
     }
-    case NodeType::Map: {
+    case NodeTypeEnum::Map: {
         double minVal = -std::numeric_limits<double>::infinity();
         double maxVal = std::numeric_limits<double>::infinity();
         bool hasMinPixelArea = false;
