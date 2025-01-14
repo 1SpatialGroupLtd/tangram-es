@@ -9,4 +9,4 @@ if "%1" == "" (
    set config="%1"
 )
 
-cmake --build windows-build-winui --config %config%
+cmake --build build/winui --config %config%
