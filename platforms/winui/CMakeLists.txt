@@ -102,7 +102,7 @@ set_target_properties(
   VS_GLOBAL_AppContainerApplication false
   VS_GLOBAL_AppxPackage false
   VS_GLOBAL_ApplicationType "Windows Store"
-  VS_GLOBAL_RuntimeIdentifier win10-x64
+  VS_GLOBAL_RuntimeIdentifier win-x64
 )
  
 target_link_libraries(
