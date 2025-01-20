@@ -7,7 +7,6 @@ class NativeLibraryLoader {
 
     private static synchronized boolean loadLibrary() {
         try {
-            System.loadLibrary("c++_shared");
             System.loadLibrary("tangram");
             return true;
         } catch (final SecurityException | UnsatisfiedLinkError | NullPointerException e) {
