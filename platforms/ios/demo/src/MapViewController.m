@@ -153,8 +153,8 @@ static const NSUInteger MAX_TAPPED_LOCATIONS = 8;
     }
 
     // Request feature picking
-    [view pickFeatureAt:location identifier:0];
-    [view pickLabelAt:location identifier:0];
+    [view pickFeatureAt:location.x y:location.y identifier:0];
+    [view pickLabelAt:location.x y:location.y identifier:0];
     // [view pickMarkerAt:location];
 
     TGCameraPosition* camera = [view cameraPosition];

@@ -31,7 +31,8 @@
  */
 - (void)mapView:(nonnull TGMapView *)mapView
 didSelectFeature:(nullable TGFeatureProperties *)feature
-atScreenPosition:(CGPoint)position;
+atScreenPosition:(CGPoint)position
+identifier:(int)identifier;
 
 /**
  Receive the result from `-[TGMapView pickLabelAt:]`.
@@ -42,7 +43,8 @@ atScreenPosition:(CGPoint)position;
  */
 - (void)mapView:(nonnull TGMapView *)mapView
  didSelectLabel:(nullable TGLabelPickResult *)labelPickResult
-atScreenPosition:(CGPoint)position;
+atScreenPosition:(CGPoint)position
+identifier:(int)identifier;
 
 /**
  Receive the result from `-[TGMapView pickMarkerAt:]`.
@@ -53,7 +55,8 @@ atScreenPosition:(CGPoint)position;
  */
 - (void)mapView:(nonnull TGMapView *)mapView
 didSelectMarker:(nullable TGMarkerPickResult *)markerPickResult
-atScreenPosition:(CGPoint)position;
+atScreenPosition:(CGPoint)position
+identifier:(int)identifier;
 
 /**
  Receive the result from `-[TGMapView captureScreenshot:]`.

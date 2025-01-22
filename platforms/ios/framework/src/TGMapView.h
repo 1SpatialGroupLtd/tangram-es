@@ -285,6 +285,8 @@ TG_EXPORT
  */
 @property (assign, nonatomic) CGFloat tilt;
 
+-(CGFloat) getZoomVelocity;
+
 #pragma mark Coordinate Conversions
 
 /**
@@ -458,6 +460,26 @@ TG_EXPORT
  */
 - (void)notifyGestureDidEnd;
 
+- (void)cancelCameraAnimation;
+
+-(void) handlePanPinchRotateFlingShove:
+                        (CGFloat) panStartX
+                        panStartY:(CGFloat) panStartY
+                        panEndX: (CGFloat) panEndX
+                        panEndY: (CGFloat) panEndY
+                        pinchPosX: (CGFloat) pinchPosX
+                        pinchPosY: (CGFloat) pinchPosY
+                        pinchValue: (CGFloat) pinchValue
+                        pinchVelocity: (CGFloat) pinchVelocity
+                        rotPosX: (CGFloat) rotPosX
+                        rotPosY: (CGFloat) rotPosY
+                        rotRadians: (CGFloat) rotRadians
+                        flingPosX: (CGFloat) flingPosX
+                        flingPosY: (CGFloat) flingPosY
+                        flingVelocityX: (CGFloat) flingVelocityX
+                        flingVelocityY: (CGFloat) flingVelocityY
+                         shoveDistance:(CGFloat) shoveDistance;
+
 #pragma mark Data Layers
 
 /**
@@ -507,10 +529,10 @@ TG_EXPORT
  <a href="https://mapzen.com/documentation/tangram/draw/#interactive">interactive property documentation</a> for
  details.
 
- @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickFeatureAt:(CGPoint)viewPosition
-           identifier:(int)identifier;
+- (void)pickFeatureAt:(CGFloat)x
+                    y:(CGFloat)y
+        identifier:(int)identifier;
 
 /**
  Select a label marked as `interactive` from the map view.
@@ -521,10 +543,10 @@ TG_EXPORT
  <a href="https://mapzen.com/documentation/tangram/draw/#interactive"> interactive property documentation</a> for
  details.
 
- @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickLabelAt:(CGPoint)viewPosition
-         identifier:(int)identifier;
+- (void)pickLabelAt:(CGFloat)x
+                    y:(CGFloat)y
+                    identifier:(int)identifier;
 
 /**
  Select a Marker marked as `interactive` from the map view.
@@ -536,11 +558,10 @@ TG_EXPORT
  TGMarker marker;
  marker.styling = "{ style: 'points', interactive : true,  color: 'white', size: [30px, 30px], order: 500 }"
  ```
-
- @param viewPosition The position in the view to pick from, in logical pixels.
  */
-- (void)pickMarkerAt:(CGPoint)viewPosition
-          identifier:(int)identifier;
+- (void)pickMarkerAt:(CGFloat)x
+                   y:(CGFloat)y
+                   identifier:(int)identifier;
 
 #pragma mark Memory Management
 
@@ -575,6 +596,7 @@ TG_EXPORT
 - (void)toggleDebugFlag:(TGDebugFlag)debugFlag;
 
 - (bool) layerExists: (NSString*)layerName;
+- (bool) setTileSourceVisibility: (NSString*)layerName isVisible:(bool) isVisible;
 - (void) setLayer: (NSString*)layerName yaml:(NSString*)yaml;
 - (bool) setTileSourceUrl: (NSString*)sourceName url:(NSString*)url;
 - (NSString*) getTileSourceUrl: (NSString*)sourceName;
