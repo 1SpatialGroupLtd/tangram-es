@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 TG_EXPORT
 @interface TGMarker : NSObject
 
+-(int)getId;
+
 /**
  Similar to `-[TGMarker point]` except that the point will transition to the
  geographic coordinate with a transition of time `seconds` and with an ease type function of type `ease`

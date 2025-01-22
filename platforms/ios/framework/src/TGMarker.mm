@@ -80,6 +80,10 @@
     }
 }
 
+-(int)getId
+{
+    return self.identifier;
+}
 - (void)pointEased:(CLLocationCoordinate2D)point seconds:(NSTimeInterval)seconds easeType:(TGEaseType)ease
 {
     [self clearGeometry];
