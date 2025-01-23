@@ -12,8 +12,6 @@ class TangramPlatform final: public Tangram::Platform {
 public:
     
     TangramPlatform(winrt::TangramWinUI::implementation::MapController&controller, Tangram::UrlClient::Options options, winrt::array_view<const winrt::hstring>& fontPaths);
-    TangramPlatform(const TangramPlatform&) = delete;
-    TangramPlatform(TangramPlatform&&) = delete;
     ~TangramPlatform() override;
 
     void shutdown() override;
