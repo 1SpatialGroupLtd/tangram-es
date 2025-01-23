@@ -149,6 +149,8 @@ SceneID Map::Impl::loadScene(SceneOptions&& _sceneOptions) {
 
     scene->load();
 
+    platform.requestRender();
+
     if (onSceneReady) {
         onSceneReady(scene->id, scene->errors());
     }
