@@ -52,7 +52,7 @@ TIZEN_X86_BUILD_DIR = build/tizen-x86
 ifeq (, $(shell which xcpretty))
 	XCPRETTY =
 else
-	XCPRETTY = | xcpretty && exit $${PIPESTATUS[0]}
+	# XCPRETTY = | xcpretty && exit $${PIPESTATUS[0]}
 endif
 
 # Default build type is Release
