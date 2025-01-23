@@ -129,9 +129,7 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
 
 - (void)clear
 {
-    if (!self.map) {
-        return;
-    }
+    if (!self.map) return;
 
     dataSource->clearFeatures();
     [self.map clearTileCache: dataSource->id()];
@@ -152,19 +150,42 @@ static inline void TGFeaturePropertiesConvertToCoreProperties(TGFeaturePropertie
 
 - (BOOL)visible
 {
+    if (!self.map) return;
     return dataSource->isVisible();
 }
 
 - (void)setVisible:(BOOL)visible
 {
+    if (!self.map) return;
     dataSource->setVisible(visible);
 }
 
 - (size_t) setGeoJsonFromBytes: (const char*) geoJsonBytes length: (size_t)length
 {
+    if (!self.map) return;
     dataSource->clearFeatures();
     [self.map clearTileCache: dataSource->id()];
     auto count = dataSource->addData(geoJsonBytes, length);
+    dataSource->generateTiles();
+}
+
+- (ssize_t) appendOrUpdateGeoJson:(nonnull const char*) geoJsonBytes length: (size_t)length generateTiles:(bool) generateTiles
+{
+    if (!self.map) return;
+    
+    auto count = dataSource->appendOrUpdateFeatures(geoJsonBytes, length);
+    [self generateTilesIfNeeded:count generateTiles:generateTiles];
+    
+    return count;
+}
+
+- (void) enableGeoJsonUpdate:(bool) enable
+{
+    if (!self.map) return;
+    dataSource->setCanUpdateFeatures(enable);
+}
+- (void) generateTiles{
+    if (!self.map) return;
     dataSource->generateTiles();
 }
 
