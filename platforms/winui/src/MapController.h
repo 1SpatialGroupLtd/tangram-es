@@ -201,6 +201,7 @@ private:
 
     std::string m_resourcesPath;
     std::string m_assetPath;
+    winrt::handle m_render_signaler;
 };
 } // namespace winrt::TangramWinUI::implementation
 

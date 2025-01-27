@@ -23,7 +23,9 @@ MapController::~MapController() {
 MapController::MapController()
     : m_fileDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
       m_renderDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
-      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()) {
+      m_workDispatcherQueueController(DispatcherQueueController::CreateOnDedicatedThread()),
+      m_render_signaler(CreateEvent(nullptr, true, false, nullptr)) {
+    
 }
 
 MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fontPaths, const hstring& assetPath) : MapController() {
@@ -200,6 +202,7 @@ void MapController::CaptureFrame(EventHandler<SoftwareBitmap> callback) {
 
 IAsyncAction MapController::Shutdown() {
     m_shuttingDown = true;
+    SetEvent(m_render_signaler.get());
 
     std::scoped_lock lock(m_mapMutex);
 
@@ -439,6 +442,12 @@ void MapController::RenderThread() {
             lastThreadRedrawId = currentRequestId;
             m_renderer->Render();
         }
+
+        if(lastThreadRedrawId == currentRequestId && !resizing && !IsShuttingDown()) {
+            // wait for the next render request
+            WaitForSingleObject(m_render_signaler.get(), INFINITE);
+            ResetEvent(m_render_signaler.get());
+        }        
     }
 }
 
@@ -651,6 +660,7 @@ void MapController::SetLabelPickHandler(EventHandler<PickResult> const& handler)
 
 void MapController::RequestRender() {
     m_renderRequestId.fetch_add(1);
+    SetEvent(m_render_signaler.get());
 }
 
 } // namespace winrt::TangramWinUI::implementation
