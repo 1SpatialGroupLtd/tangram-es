@@ -1,4 +1,3 @@
-call load_msvc_toolchain.cmd
 call vcpkg_init.cmd
 
 set ANGLE_NUGET_PACKAGE=Google.Angle
