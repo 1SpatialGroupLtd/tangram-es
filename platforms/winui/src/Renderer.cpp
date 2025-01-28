@@ -7,7 +7,8 @@
 
 #include "MapController.h"
 
-// ensures the exclusive access to the underlying graphics API 
+// ensures the exclusive access to the underlying graphics ANGLE API.
+// had issues while tried to render in pararell with the D3D renderer of ANGLE.
 static std::mutex s_globalRenderMutex{};
 
 const EGLint configAttributes[] = {EGL_RED_SIZE,
@@ -108,12 +109,14 @@ bool Renderer::ResizeAndSetPixelScale(int width, int height, float pixelScale) {
     auto& map = m_controller->GetMap();
     bool changed = false;
 
+    std::scoped_lock globalLock(s_globalRenderMutex);
+
     if(map.getViewportWidth() != width || height != map.getViewportHeight()) {
         map.resize(width, height);
         changed = true;
     }
 
-    if(map.getPixelScale() != pixelScale) {
+    if(fabs(map.getPixelScale() - pixelScale) > 0.001) {
         map.setPixelScale(pixelScale);
         changed = true;
     }
