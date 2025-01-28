@@ -6,9 +6,6 @@
 #include "Tangram.h"
 #include "TangramPlatform.h"
 
-#include <winrt/Windows.ApplicationModel.Core.h>
-#include <winrt/Windows.Storage.Streams.h>
-
 using winrt::Microsoft::UI::Xaml::SizeChangedEventArgs;
 using winrt::Microsoft::UI::Xaml::SizeChangedEventHandler;
 using WinRTMarkerImpl = winrt::TangramWinUI::implementation::Marker;
@@ -531,9 +528,16 @@ int MapController::LoadSceneYaml(const hstring& yaml, const hstring& resourceRoo
     Tangram::SceneOptions options{};
     options.numTileWorkers = 2;
     options.memoryTileCacheSize = Tangram::SceneOptions::DEFAULT_CACHE_SIZE * 2;
-    options.url = Tangram::Url(to_string(resourceRoot));
+
+    if (!resourceRoot.empty()) {
+        m_resourcesPath = to_string(resourceRoot);
+        options.url = Tangram::Url(to_string(resourceRoot));
+    } else {
+        options.url = Tangram::Url(m_resourcesPath);
+    }
+
     options.yaml = to_string(yaml);
-    m_resourcesPath = to_string(resourceRoot);
+
     return m_map->loadScene(std::move(options), loadAsync);
 }
 
