@@ -77,21 +77,22 @@ void SelectionQuery::process(const View& _view, const FrameBuffer& _framebuffer,
         auto& cb = m_queryCallback.get<MarkerPickCallback>();
 
         if (color == 0) {
-            cb(nullptr);
+            MarkerPickResult markerResult(0, m_identifier, {}, {});
+            cb(&markerResult);
             return;
         }
 
         auto marker = _markerManager.getMarkerOrNullBySelectionColor(color);
 
         if (!marker) {
-            cb(nullptr);
+            MarkerPickResult markerResult(0, m_identifier, {}, {});
+            cb(&markerResult);
             return;
         }
 
         glm::dvec2 bbCenter = marker->bounds().center();
         LngLat lngLat = MapProjection::projectedMetersToLngLat(bbCenter).wrapped();
         MarkerPickResult markerResult(marker->id(), m_identifier, lngLat, {{m_position.x, m_position.y}});
-
         cb(&markerResult);
     } break;
     case QueryType::label: {
