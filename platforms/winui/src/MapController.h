@@ -153,6 +153,7 @@ public:
 
     const std::string& GetAssetPath() const { return m_assetPath; }
     const std::string& GetResourcesPath() const { return m_resourcesPath; }
+
 private:
 
     void OnSizeChanged();
@@ -201,7 +202,6 @@ private:
       and the 2nd one will be executed next.
      */
     std::atomic<uint64_t> m_renderRequestId{};
-    bool m_loaded{};
 
     std::string m_resourcesPath;
     std::string m_assetPath;

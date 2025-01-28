@@ -64,17 +64,7 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
 }
 
 event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& handler) {
-    auto token =  m_onLoaded.add(handler);
-    bool isLoaded;
-    {
-        std::scoped_lock lock(m_mapMutex);
-        isLoaded = m_loaded;
-    }
-
-    if (isLoaded)
-        ScheduleOnUIThread([this]{ m_onLoaded(m_panel, *this); });
-
-    return token;
+    return m_onLoaded.add(handler);
 }
 
 void MapController::OnLoaded(event_token const& token) noexcept { m_onLoaded.remove(token); }
