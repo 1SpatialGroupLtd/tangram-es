@@ -135,18 +135,16 @@ void Renderer::Render() {
     eglPrepareSwapBuffersANGLE(m_display, m_surface);
 
     {
-        {
-            std::scoped_lock lock(m_controller->Mutex());
-            auto now = std::chrono::high_resolution_clock::now();
-            m_lastTime = now;
-            float elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
-            state = map.update(elapsed_seconds);
-            willCaptureFrame = m_captureFrameCallback && state.viewComplete();
+        std::scoped_lock lock(m_controller->Mutex());
+        auto now = std::chrono::high_resolution_clock::now();
+        float elapsed_seconds = std::chrono::duration<float>(now - m_lastTime).count();
+        m_lastTime = now;
+        state = map.update(elapsed_seconds);
+        willCaptureFrame = m_captureFrameCallback && state.viewComplete(); 
 
-            // only one thread can access the graphics layer exclusively, limitation we need to live with
-            std::scoped_lock globalLock(s_globalRenderMutex);
-            map.render();
-        }
+        // only one thread can access the graphics layer exclusively, limitation we need to live with
+        std::scoped_lock globalLock(s_globalRenderMutex);
+        map.render();
 
         // if we are not capturing, just swap the buffers right now under this lock
         if (!willCaptureFrame)
