@@ -46,37 +46,21 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
     m_map->setSceneReadyListener([this](Tangram::SceneID id, auto) { m_onSceneLoaded(*this, id); });
     m_renderer->InitRendererOnUiThread(m_panel);
 
-    m_panel.SizeChanged(SizeChangedEventHandler([this](auto, const SizeChangedEventArgs&) {
-        if (IsShuttingDown()) return;
-
-        // TODO: Preserve some width,height buffer in the native viewport to save some very marginal size changes
-        // Have a bit of extra "padding" then when we increase the size we still might have enough viewport size, so
-        // we do not need to resize. When we are down-sizing can have the same padding to not call resize until we
-        // go very low, just keep the current viewport.
-
-        auto width = static_cast<int>(m_panel.ActualWidth());
-        auto height = static_cast<int>(m_panel.ActualHeight());
-        auto newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
-        auto oldPixelScale = m_map->getPixelScale();
-
-        if (m_map->getViewportWidth() != width || height != m_map->getViewportHeight() ||
-            fabs(newPixelScale - oldPixelScale) >= 0.01) {
-            std::scoped_lock resizeLock(m_resizeMutex);
-            m_newWidth = width;
-            m_newHeight = height;
-            m_newPixelScale = newPixelScale;
-            m_resizeRequestedAt = std::chrono::high_resolution_clock::now();
-        }
-    }));
-
-    m_newWidth = static_cast<int>(m_panel.ActualWidth());
-    m_newHeight = static_cast<int>(m_panel.ActualHeight());
-    m_newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
-
     m_map->setupGL();
 
     m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(DispatcherQueuePriority::Normal,
                                                                    DispatcherQueueHandler([this] { RenderThread(); }));
+
+    m_delayed_resize_timer.Tick([this](auto, auto) {
+        m_delayed_resize_timer.Stop();
+        // make sure we update the latest position
+        CalculateNewSize();
+        RequestRender();
+    });
+
+    m_panel.SizeChanged(SizeChangedEventHandler([this](auto, auto) { OnSizeChanged(); }));
+
+    OnSizeChanged();
 }
 
 event_token MapController::OnLoaded(EventHandler<WinRTMapController> const& handler) {
@@ -409,54 +393,69 @@ void MapController::SetMapRegionState(MapRegionChangeState state) {
     }
 }
 
+void MapController::OnSizeChanged() {
+    CalculateNewSize();
+    RequestRender();
+
+    // drawing on resize just bad in general at the moment,
+    // it makes sure we always get a full frame at the very end
+    m_delayed_resize_timer.Stop();
+    m_delayed_resize_timer.Interval(winrt::Windows::Foundation::TimeSpan(std::chrono::milliseconds{100}));
+    m_delayed_resize_timer.Start();
+}
+
+void MapController::CalculateNewSize() {
+    constexpr static float MAX_PIXEL_SCALE = 1.5f;
+
+    auto width = static_cast<int>(m_panel.ActualWidth());
+    auto height = static_cast<int>(m_panel.ActualHeight());
+    auto newPixelScale = std::min(MAX_PIXEL_SCALE, static_cast<float>(m_panel.XamlRoot().RasterizationScale()));
+
+    bool changed = fabs((float)m_map->getPixelScale() - newPixelScale) > 0.001 ||
+                   m_map->getViewportWidth() != width  ||
+                   m_map->getViewportHeight() != height;
+
+    if (changed)
+    {
+        std::scoped_lock resizeLock(m_resizeMutex);
+        m_newWidth = width;
+        m_newHeight = height;
+        m_newPixelScale = newPixelScale;
+        m_resized = true;
+    }
+}
+
 void MapController::RenderThread() {
     {
         std::scoped_lock mapLock(m_mapMutex);
         m_renderer->MakeActive();
-
-        std::scoped_lock resizeLock(m_resizeMutex);
-        m_renderer->ResizeAndSetPixelScale(m_newWidth, m_newHeight, m_newPixelScale);
-        m_resizeRequestedAt = {};
-        m_newHeight = 0;
-        m_newWidth = 0;
-        m_newPixelScale = 0;
-
-        m_loaded = true;
     }
 
-    ScheduleOnUIThread([this]() { m_onLoaded(m_panel, *this); });
+    uint64_t lastThreadRedrawId{};
+    ScheduleOnUIThread([this] { m_onLoaded(m_panel, *this); });
 
-    uint64_t lastThreadRedrawId = -1;
+    while (!IsShuttingDown())
+    {
+        if(m_resized)
+        {
+            std::scoped_lock(m_resizeMutex);
 
-    while (!IsShuttingDown()) {
-        const auto currentRequestId = m_renderRequestId.load();
-        auto resizing = false;
-
-        if (m_resizeMutex.try_lock()) {
-            if (m_resizeRequestedAt.has_value()) {
-                resizing = true;
-                m_renderer->ResizeAndSetPixelScale(m_newWidth, m_newHeight, m_newPixelScale);
-             
-                // lets give the UI N-millisec for redrawing
-                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_resizeRequestedAt.value());
-                if (diff.count() > 15) {
-                    m_resizeRequestedAt = {};
-                    m_newWidth = 0;
-                    m_newHeight = 0;
-                    m_newPixelScale = 0;
-                }
-            }
-
-            m_resizeMutex.unlock();
+            m_renderer->ResizeAndSetPixelScale(m_newWidth, m_newHeight, m_newPixelScale);
+            m_resized = false;
+            m_newWidth = 0;
+            m_newHeight = 0;
+            m_newPixelScale = 0;
         }
 
-        if(lastThreadRedrawId != currentRequestId || resizing) {
+        const auto currentRequestId = m_renderRequestId.load();
+
+        if(lastThreadRedrawId != currentRequestId) {
             lastThreadRedrawId = currentRequestId;
             m_renderer->Render();
         }
 
-        if(lastThreadRedrawId == currentRequestId && !resizing && !IsShuttingDown()) {
-            // wait for the next render request
+        // re-check if we have anything else to do, so we can sleep until further request
+        if (currentRequestId == m_renderRequestId.load() && !IsShuttingDown() && !m_resized) {
             WaitForSingleObject(m_render_signaler.get(), INFINITE);
             ResetEvent(m_render_signaler.get());
         }        

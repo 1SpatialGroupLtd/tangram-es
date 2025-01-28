@@ -16,6 +16,7 @@ enum class MapRegionChangeState {
     ANIMATING,
 };
 
+using winrt::Microsoft::UI::Xaml::DispatcherTimer;
 using winrt::Microsoft::UI::Xaml::RoutedEventArgs;
 using WinRTMapController = winrt::TangramWinUI::MapController;
 using winrt::Windows::Foundation::Point;
@@ -152,9 +153,10 @@ public:
 
     const std::string& GetAssetPath() const { return m_assetPath; }
     const std::string& GetResourcesPath() const { return m_resourcesPath; }
-
 private:
 
+    void OnSizeChanged();
+    void CalculateNewSize();
     void RenderThread();
     
     event<EventHandler<int>> m_onViewComplete;
@@ -188,7 +190,9 @@ private:
     /* Guards the interactions on m_map instance. */
     std::mutex m_mapMutex;
     std::mutex m_resizeMutex;
-    std::optional<std::chrono::time_point<std::chrono::steady_clock>> m_resizeRequestedAt;
+
+    DispatcherTimer m_delayed_resize_timer;
+    bool m_resized{};
 
     /*
       Keeps track of the currently queued actions on the render queue.
