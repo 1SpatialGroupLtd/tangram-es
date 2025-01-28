@@ -48,7 +48,7 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
 
     m_map->setupGL();
 
-    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(DispatcherQueuePriority::Normal,
+    m_renderDispatcherQueueController.DispatcherQueue().TryEnqueue(DispatcherQueuePriority::High,
                                                                    DispatcherQueueHandler([this] { RenderThread(); }));
 
     m_delayed_resize_timer.Tick([this](auto, auto) {
