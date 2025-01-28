@@ -260,22 +260,22 @@ void MapController::PickMarker(float posX, float posY, int identifier) {
     if (!m_markerPickHandler) return;
 
     m_map->pickMarkerAt(posX, posY, identifier, [this](const Tangram::MarkerPickResult* pick) {
-        ScheduleOnUIThread([this, pick] {
-            const auto handler = m_markerPickHandler;
+        const auto handler = m_markerPickHandler;
 
-            if (!handler) return;
+        if (!handler) return;
 
-            if (!pick) {
-                handler(*this, nullptr);
-                return;
-            }
+        if (!pick)
+        {
+            ScheduleOnUIThread([this, pick] { m_markerPickHandler(*this, {}); });
+            return;
+        }
 
-            auto result = PickResult();
-            result.MarkerId(pick->id);
-            result.Position(LngLat(pick->coordinates.longitude, pick->coordinates.latitude));
-            result.Identifier(pick->identifier);
-            handler(*this, result);
-        });
+        auto result = PickResult();
+        result.MarkerId(pick->id);
+        result.Position(LngLat(pick->coordinates.longitude, pick->coordinates.latitude));
+        result.Identifier(pick->identifier);
+
+        ScheduleOnUIThread([this, result, handler] { handler(*this, result); });
     });
 }
 
@@ -284,20 +284,20 @@ void MapController::PickFeature(float posX, float posY, int identifier) {
     if (!m_featurePickHandler || IsShuttingDown()) return;
 
     m_map->pickFeatureAt(posX, posY, identifier, [this](const Tangram::FeaturePickResult* pick) {
-          ScheduleOnUIThread([this, pick] {
-            const auto handler = m_featurePickHandler;
-            if (!handler) return;
+        const auto handler = m_featurePickHandler;
 
-            if (!pick) {
-                handler(*this, nullptr);
-                return;
-            }
+        if (!handler) return;
 
-            auto result = PickResult();
-            result.Position(LngLat(pick->position[0], pick->position[1]));
-            result.FeatureId(pick->identifier);
-            handler(*this, result);
-        });
+        if (!pick) {
+            ScheduleOnUIThread([this, pick] { m_markerPickHandler(*this, {}); });
+            return;
+        }
+
+        auto result = PickResult();
+        result.Position(LngLat(pick->position[0], pick->position[1]));
+        result.FeatureId(pick->identifier);
+
+        ScheduleOnUIThread([this, result, handler] { handler(*this, result); });
     });
 }
 
@@ -306,23 +306,21 @@ void MapController::PickLabel(float posX, float posY, int identifier) {
     if (!m_labelPickHandler || IsShuttingDown()) return;
 
     m_map->pickLabelAt(posX, posY, identifier, [this](const Tangram::LabelPickResult* pick) {
+       const auto handler = m_labelPickHandler;
 
-         ScheduleOnUIThread([this, pick] {
-            const auto handler = m_labelPickHandler;
+        if (!handler) return;
 
-            if (!handler) return;
+        if (!pick) {
+            ScheduleOnUIThread([this, pick] { m_markerPickHandler(*this, {}); });
+            return;
+        }
 
-            if (!pick) {
-                handler(*this, nullptr);
-                return;
-            }
+        auto result = PickResult();
+        result.FeatureId(pick->type);
+        result.Position(LngLat(pick->coordinates.longitude, pick->coordinates.latitude));
+        result.Identifier(pick->identifier);
 
-            auto result = PickResult();
-            result.FeatureId(pick->type);
-            result.Position(LngLat(pick->coordinates.longitude, pick->coordinates.latitude));
-            result.Identifier(pick->identifier);
-            handler(*this, result);
-        });
+        ScheduleOnUIThread([this, result, handler] { handler(*this, result); });
     });
 }
 
