@@ -92,6 +92,7 @@ TG_EXPORT
  @return An initialized map view.
  */
 - (instancetype)initWithFrame:(CGRect)frame urlHandler:(id<TGURLHandler>)urlHandler;
+- (instancetype)initWithFrame:(CGRect)frame setupGestures:(bool)setupGestures;
 
 #pragma mark Loading Scenes
 
