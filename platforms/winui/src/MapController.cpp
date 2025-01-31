@@ -30,6 +30,7 @@ MapController::MapController(SwapChainPanel panel, array_view<const hstring>& fo
     m_markers = multi_threaded_map<uint32_t, WinRTMarker>();
     m_panel = panel;
     m_assetPath = to_string(assetPath);
+    m_resourcesPath = m_assetPath;
     // when we increase the DPI of the display, above 1.5 it just looks very blurry with raster tiles,
     // so we limit the pixel scale
     constexpr static float MAX_PIXEL_SCALE = 1.5;
@@ -392,7 +393,7 @@ void MapController::OnSizeChanged() {
 }
 
 void MapController::CalculateNewSize() {
-    constexpr static float MAX_PIXEL_SCALE = 1.5f;
+    constexpr static float MAX_PIXEL_SCALE = 1.25f;
 
     auto width = static_cast<int>(m_panel.ActualWidth());
     auto height = static_cast<int>(m_panel.ActualHeight());

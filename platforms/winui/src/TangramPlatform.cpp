@@ -76,23 +76,22 @@ bool TangramPlatform::startUrlRequestImpl(const Tangram::Url& _url, const Tangra
         UrlResponse resp;
         std::filesystem::path path(localPath);
 
+        if (localPath.compare(0, 9, "asset:///") == 0) {
+            path = m_controller.GetAssetPath() + "/" + localPath.substr(9);
+        } else if (localPath.compare(0, 8, "file:///") == 0) {
+            path = localPath.substr(8);
+        }
+        else
         {
             std::ifstream f(path);
             if (!f.good()) 
             {
                 path = path.filename();
             }
-        }
 
-        if(localPath.compare(0, 9, "asset:///") == 0) {
-            path = m_controller.GetAssetPath() + "/" + localPath.substr(9);
-        }
-        else if(localPath.compare(0, 8, "file:///") == 0) {
-            path = localPath.substr(8);
-        }
-
-        if(path.is_relative()) {
-            path = m_controller.GetResourcesPath() / path;
+            if (path.is_relative()) {
+                path = m_controller.GetResourcesPath() / path;
+            }
         }
         
         // Open file
