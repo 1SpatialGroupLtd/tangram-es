@@ -23,7 +23,6 @@
 #import "TGSceneUpdate.h"
 #import "TGTypes+Internal.h"
 #import <GLKit/GLKit.h>
-
 #include "data/clientDataSource.h"
 #include "data/propertyItem.h"
 #include "iosPlatform.h"
@@ -87,6 +86,14 @@ typedef NS_ENUM(NSInteger, TGMapRegionChangeState) {
     return self;
 }
 
+- (instancetype)initWithFrame:(CGRect)frame setupGestures:(bool)setupGestures
+{
+    self = [super initWithFrame:frame];
+    
+    if (self) {
+        [self setupWithGestures:setupGestures];
+    }
+}
 - (instancetype)initWithFrame:(CGRect)frame urlHandler:(id<TGURLHandler>)urlHandler
 {
     self = [super initWithFrame:frame];
@@ -110,7 +117,11 @@ typedef NS_ENUM(NSInteger, TGMapRegionChangeState) {
     [self invalidateContext];
 }
 
-- (void)setup
+- (void)setup {
+    [self setupWithGestures:true];
+}
+
+- (void)setupWithGestures:(bool)setupGestures
 {
     __weak TGMapView* weakSelf = self;
     _map = new Tangram::Map(std::make_unique<Tangram::iOSPlatform>(weakSelf));
@@ -156,8 +167,8 @@ typedef NS_ENUM(NSInteger, TGMapRegionChangeState) {
     if(!_viewInBackground) {
         [self setupGL];
     }
-
-    [self setupGestureRecognizers];
+   if(setupGestures)
+       [self setupGestureRecognizers];
 
     self.map->setCameraAnimationListener([weakSelf](bool finished){
         void (^callback)(BOOL) = weakSelf.cameraAnimationCallback;
@@ -686,7 +697,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
     self.map->pickMarkerAt(x, y, identifier, [weakSelf, identifier](const Tangram::MarkerPickResult* markerPickResult) {
         __strong TGMapView* strongSelf = weakSelf;
 
-        if (!strongSelf || ![strongSelf.mapViewDelegate respondsToSelector:@selector(mapView:didSelectMarker:atScreenPosition:)]) {
+        if (!strongSelf || ![strongSelf.mapViewDelegate respondsToSelector:@selector(mapView:didSelectMarker:atScreenPosition:identifier:)]) {
             return;
         }
 
@@ -1111,6 +1122,8 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
             if(!wasAlreadyHandled)
             {
                 [self setMapRegionChangeState:TGMapRegionJumping];
+                
+                
                 self.map->handlePanGesture(start.x * self.contentScaleFactor, start.y * self.contentScaleFactor, end.x * self.contentScaleFactor, end.y * self.contentScaleFactor);
             }
             break;
@@ -1425,6 +1438,7 @@ std::vector<Tangram::SceneUpdate> unpackSceneUpdates(NSArray<TGSceneUpdate *> *s
                          shoveDistance:(CGFloat) shoveDistance
 {
     if (!_map) { return; }
+ 
     _map->handlePanPinchRotateFlingShove(panStartX, panStartY,panEndX, panEndY,pinchPosX,pinchPosY,pinchValue, pinchVelocity,rotPosX, rotPosY,rotRadians, flingPosX,flingPosY, flingVelocityX,flingVelocityY,shoveDistance);
 }
 
