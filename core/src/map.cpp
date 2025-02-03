@@ -657,14 +657,15 @@ void Map::flyTo(const CameraPosition& _camera, float _duration, float _speed) {
                 impl->view.setZoom(_camera.zoom);
                 impl->view.setRoll(_camera.rotation);
                 impl->view.setPitch(_camera.tilt);
+                imitateMove();
             } else {
                 glm::dvec3 pos = fn(t);
                 impl->view.setPosition(pos.x, pos.y);
                 impl->view.setZoom(pos.z);
                 impl->view.setRoll(ease(rStart, rEnd, t, e));
                 impl->view.setPitch(ease(tStart, _camera.tilt, t, e));
+                impl->platform.requestRender();
             }
-            impl->platform.requestRender();
         };
 
     if (_speed <= 0.f) { _speed = 1.f; }
