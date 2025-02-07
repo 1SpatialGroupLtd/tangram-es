@@ -46,9 +46,6 @@ public class MapView extends FrameLayout {
         super(context, attrs);
     }
 
-    public boolean canDestroyGlContext() { return viewHolder.canDestroyGlContext(); }
-    public void setCanDestroyGlContext(boolean canDestroy) { viewHolder.setCanDestroyGlContext(canDestroy); }
-
     /**
      * Construct a {@code MapController} in an async thread using {@link GLSurfaceView} as GL rendering interface;
      * may only be called from the UI thread
