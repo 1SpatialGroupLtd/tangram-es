@@ -9,15 +9,6 @@ import androidx.annotation.NonNull;
  * Interface which holds a GL View, used to display Tangram Map
  */
 public interface GLViewHolder {
-
-    enum RenderMode {
-        RENDER_WHEN_DIRTY,
-        RENDER_CONTINUOUSLY
-    };
-
-    boolean canDestroyGlContext();
-    void setCanDestroyGlContext(boolean canDestroy);
-
     /**
      * Set the renderer associated with this view. Also starts the thread that
      * will call the renderer, which in turn causes the rendering to start.

@@ -17,6 +17,7 @@ import com.mapzen.tangram.TouchInput.Gestures;
 import com.mapzen.tangram.viewholder.GLViewHolder;
 import com.mapzen.tangram.networking.DefaultHttpHandler;
 import com.mapzen.tangram.networking.HttpHandler;
+import com.mapzen.tangram.viewholder.RenderMode;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -185,7 +186,7 @@ public class MapController {
         // Set up MapView
         this.viewHolder = viewHolder;
         viewHolder.setRenderer(mapRenderer);
-        viewHolder.setRenderMode(GLViewHolder.RenderMode.RENDER_WHEN_DIRTY);
+        viewHolder.setRenderMode(RenderMode.RENDER_WHEN_DIRTY);
 
         touchInput = new TouchInput(context);
 
@@ -746,10 +747,10 @@ public class MapController {
     public void setRenderMode(@IntRange(from=0,to=1) final int renderMode) {
         switch (renderMode) {
             case 0:
-                viewHolder.setRenderMode(GLViewHolder.RenderMode.RENDER_WHEN_DIRTY);
+                viewHolder.setRenderMode(RenderMode.RENDER_WHEN_DIRTY);
                 break;
             case 1:
-                viewHolder.setRenderMode(GLViewHolder.RenderMode.RENDER_CONTINUOUSLY);
+                viewHolder.setRenderMode(RenderMode.RENDER_CONTINUOUSLY);
                 break;
             default:
         }
