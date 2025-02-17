@@ -1398,7 +1398,12 @@ public class MapController {
             uiThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    final Marker marker = markers.get(markerId);
+                    Marker marker = null;
+
+                    if(markerId > 0) {
+                        marker = markers.get(markerId);
+                    }
+
                     MarkerPickResult result = new MarkerPickResult(marker, identifier, lng, lat, x, y);
                     listener.onMarkerPickComplete(result);
                 }
