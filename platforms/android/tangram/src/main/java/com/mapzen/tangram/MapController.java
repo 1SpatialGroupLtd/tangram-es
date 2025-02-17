@@ -1370,10 +1370,7 @@ public class MapController {
             uiThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    FeaturePickResult result = null;
-                    if (properties != null) {
-                        result = new FeaturePickResult(properties, identifier, x, y);
-                    }
+                    FeaturePickResult result = new FeaturePickResult(properties, identifier, x, y);
                     listener.onFeaturePickComplete(result);
                 }
             });
@@ -1387,10 +1384,7 @@ public class MapController {
             uiThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    LabelPickResult result = null;
-                    if (properties != null) {
-                        result = new LabelPickResult(properties, identifier, lng, lat, x, y, type);
-                    }
+                    LabelPickResult result = new LabelPickResult(properties, identifier, lng, lat, x, y, type);
                     listener.onLabelPickComplete(result);
                 }
             });
@@ -1405,10 +1399,7 @@ public class MapController {
                 @Override
                 public void run() {
                     final Marker marker = markers.get(markerId);
-                    MarkerPickResult result = null;
-                    if (marker != null) {
-                        result = new MarkerPickResult(marker, identifier, lng, lat, x, y);
-                    }
+                    MarkerPickResult result = new MarkerPickResult(marker, identifier, lng, lat, x, y);
                     listener.onMarkerPickComplete(result);
                 }
             });
