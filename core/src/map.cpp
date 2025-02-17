@@ -83,7 +83,7 @@ public:
     std::unique_ptr<FrameBuffer> selectionBuffer = std::make_unique<FrameBuffer>(0, 0);
 
     bool cacheGlState = false;
-    float pickRadius = .5f;
+    float pickRadius = .1f;
     bool isAnimating = false;
 
     std::vector<SelectionQuery> selectionQueries;
